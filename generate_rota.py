@@ -1,13 +1,26 @@
-# support list is a csv in repo
-
-# check day
-# if greater than monday set rota start date to next monday
-
-# iterate through list of support
-# assign to date
-
 import copy
 import datetime
+from pathlib import Path
+
+from apiclient.discovery import build
+from google_auth_oauthlib.flow import Flow
+
+flow = Flow.from_client_secrets_file(
+    Path.cwd().parent / "data-engineering-support-rota.json",
+    scopes=["https://www.googleapis.com/auth/calendar.events"],
+    redirect_uri="urn:ietf:wg:oauth:2.0:oob"
+)
+
+auth_url, _ = flow.authorization_url(prompt="consent")
+
+print("Please go to this URL: {}".format(auth_url))
+
+code = input("Enter the authorization code: ")
+flow.fetch_token(code=code)
+
+session = flow.authorized_session()
+print(session.get("https://www.googleapis.com/userinfo/v3/me").json())
+
 
 support = {
     0: ("George", "Alec"),
@@ -191,15 +204,13 @@ def next_weekday(date, weekday: int):
         The date of the next occurance of a particular day of the week from the given date.
     """
     days_ahead = weekday - date.weekday()
-    if days_ahead <= 0:  # Target day already happened this week
+    if days_ahead <= 0:  # if the target day has already happened this week
         days_ahead += 7
     return date + datetime.timedelta(days_ahead)
 
 
 todays_date = datetime.date.today()
 the_weekday = todays_date.weekday()
-
-# print("it's ", calendar.day_name[the_day], todays_date)
 next_monday = next_weekday(todays_date, 0)  # 0=Mon, 1=Tue, 2=Wed...
 this_weeks_rota = copy.deepcopy(calendar)
 i = 4  # this will be written to a file at the end of the script and read in at the beginning to persit the index position of the support rota
@@ -213,5 +224,5 @@ for i in range(i, i + 5):
     this_weeks_rota["time"] = None
     this_weeks_rota["duration"] = None
 
-# does there need to be some logic to determine what date to start the week on based on if the script is running on monday or not?
+# add some logic to determine what date to start the week on based on if the script is running on monday or not?
 print(this_weeks_rota)
