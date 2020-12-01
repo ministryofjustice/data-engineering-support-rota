@@ -1,191 +1,34 @@
 import copy
-import datetime
+from datetime import datetime
 from pathlib import Path
 
 from apiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
 
-flow = Flow.from_client_secrets_file(
-    Path.cwd().parent / "data-engineering-support-rota.json",
-    scopes=["https://www.googleapis.com/auth/calendar.events"],
-    redirect_uri="urn:ietf:wg:oauth:2.0:oob"
+
+start_date_string = "2000-01-01"
+start_date = datetime.strptime(start_date_string, "%Y-%m-%d").date()
+todays_date = datetime.today().date()
+date_delta = todays_date - start_date
+
+support = (
+    ("George", "Alec"),
+    ("Adam", "Darius"),
+    ("Calum", "Thomas"),
+    ("Karik", "Jake"),
+    ("Sam", "Tapan"),
+    ("Jacob", "Anthony"),
+    ("Kimberley", "David"),
+    ("Alec", "George"),
+    ("Darius", "Adam"),
+    ("Thomas", "Calum"),
+    ("Jake", "Karik"),
+    ("Tapan", "Sam"),
+    ("Anthony", "Jacob"),
+    ("David", "Kimberley"),
 )
 
-auth_url, _ = flow.authorization_url(prompt="consent")
-
-print("Please go to this URL: {}".format(auth_url))
-
-code = input("Enter the authorization code: ")
-flow.fetch_token(code=code)
-
-session = flow.authorized_session()
-print(session.get("https://www.googleapis.com/userinfo/v3/me").json())
-
-
-support = {
-    0: ("George", "Alec"),
-    1: ("Adam", "Darius"),
-    2: ("Calum", "Thomas"),
-    3: ("Karik", "Jake"),
-    4: ("Sam", "Tapan"),
-    5: ("Jacob", "Anthony"),
-    6: ("Kimberley", "David"),
-    7: ("Alec", "George"),
-    8: ("Darius", "Adam"),
-    9: ("Thomas", "Calum"),
-    10: ("Jake", "Karik"),
-    11: ("Tapan", "Sam"),
-    12: ("Anthony", "Jacob"),
-    13: ("David", "Kimberley"),
-}
-
-
-calendar = {
-  "kind": "calendar#event",
-  "etag": etag,
-  "id": string,
-  "status": string,
-  "htmlLink": string,
-  "created": datetime,
-  "updated": datetime,
-  "summary": string,
-  "description": string,
-  "location": string,
-  "colorId": string,
-  "creator": {
-    "id": string,
-    "email": string,
-    "displayName": string,
-    "self": boolean
-  },
-  "organizer": {
-    "id": string,
-    "email": string,
-    "displayName": string,
-    "self": boolean
-  },
-  "start": {
-    "date": date,
-    "dateTime": datetime,
-    "timeZone": string
-  },
-  "end": {
-    "date": date,
-    "dateTime": datetime,
-    "timeZone": string
-  },
-  "endTimeUnspecified": boolean,
-  "recurrence": [
-    string
-  ],
-  "recurringEventId": string,
-  "originalStartTime": {
-    "date": date,
-    "dateTime": datetime,
-    "timeZone": string
-  },
-  "transparency": string,
-  "visibility": string,
-  "iCalUID": string,
-  "sequence": integer,
-  "attendees": [
-    {
-      "id": string,
-      "email": string,
-      "displayName": string,
-      "organizer": boolean,
-      "self": boolean,
-      "resource": boolean,
-      "optional": boolean,
-      "responseStatus": string,
-      "comment": string,
-      "additionalGuests": integer
-    }
-  ],
-  "attendeesOmitted": boolean,
-  "extendedProperties": {
-    "private": {
-      (key): string
-    },
-    "shared": {
-      (key): string
-    }
-  },
-  "hangoutLink": string,
-  "conferenceData": {
-    "createRequest": {
-      "requestId": string,
-      "conferenceSolutionKey": {
-        "type": string
-      },
-      "status": {
-        "statusCode": string
-      }
-    },
-    "entryPoints": [
-      {
-        "entryPointType": string,
-        "uri": string,
-        "label": string,
-        "pin": string,
-        "accessCode": string,
-        "meetingCode": string,
-        "passcode": string,
-        "password": string
-      }
-    ],
-    "conferenceSolution": {
-      "key": {
-        "type": string
-      },
-      "name": string,
-      "iconUri": string
-    },
-    "conferenceId": string,
-    "signature": string,
-    "notes": string,
-  },
-  "gadget": {
-    "type": string,
-    "title": string,
-    "link": string,
-    "iconLink": string,
-    "width": integer,
-    "height": integer,
-    "display": string,
-    "preferences": {
-      (key): string
-    }
-  },
-  "anyoneCanAddSelf": boolean,
-  "guestsCanInviteOthers": boolean,
-  "guestsCanModify": boolean,
-  "guestsCanSeeOtherGuests": boolean,
-  "privateCopy": boolean,
-  "locked": boolean,
-  "reminders": {
-    "useDefault": boolean,
-    "overrides": [
-      {
-        "method": string,
-        "minutes": integer
-      }
-    ]
-  },
-  "source": {
-    "url": string,
-    "title": string
-  },
-  "attachments": [
-    {
-      "fileUrl": string,
-      "title": string,
-      "mimeType": string,
-      "iconLink": string,
-      "fileId": string
-    }
-  ]
-}
+calendar = {}
 
 
 def next_weekday(date, weekday: int):
@@ -209,16 +52,13 @@ def next_weekday(date, weekday: int):
     return date + datetime.timedelta(days_ahead)
 
 
-todays_date = datetime.date.today()
-the_weekday = todays_date.weekday()
-next_monday = next_weekday(todays_date, 0)  # 0=Mon, 1=Tue, 2=Wed...
 this_weeks_rota = copy.deepcopy(calendar)
 i = 4  # this will be written to a file at the end of the script and read in at the beginning to persit the index position of the support rota
 
 for i in range(i, i + 5):
-    this_weeks_rota["event"] = (
-        f"{support[i][0]} is on support today with {support[i][1]} assisting."
-    )
+    this_weeks_rota[
+        "event"
+    ] = f"{support[i][0]} is on support today with {support[i][1]} assisting."
     this_weeks_rota["date"] = next_monday
     this_weeks_rota["all_day"] = "y"
     this_weeks_rota["time"] = None
@@ -226,3 +66,20 @@ for i in range(i, i + 5):
 
 # add some logic to determine what date to start the week on based on if the script is running on monday or not?
 print(this_weeks_rota)
+
+
+flow = Flow.from_client_secrets_file(
+    Path.cwd().parent / "data-engineering-support-rota.json",
+    scopes=["https://www.googleapis.com/auth/calendar.events"],
+    redirect_uri="urn:ietf:wg:oauth:2.0:oob",
+)
+
+auth_url, _ = flow.authorization_url(prompt="consent")
+
+print("Please go to this URL: {}".format(auth_url))
+
+code = input("Enter the authorization code: ")
+flow.fetch_token(code=code)
+
+session = flow.authorized_session()
+print(session.get("https://www.googleapis.com/userinfo/v3/me").json())
