@@ -139,8 +139,8 @@ event = {}
 
 for day in range(len(dates)):
     event["summary"] = (
-        f"{support_team[day % len(support_team)][0][0]} is on support today with "
-        f"{support_team[day % len(support_team)][1][0]} assisting."
+        f"{support_team[day % len(support_team)][0]} is on support today with "
+        f"{support_team[day % len(support_team)][1]} assisting."
     )
     event["start"] = {"date": str(dates[day])}
     event["end"] = {"date": str(dates[day])}
