@@ -104,3 +104,13 @@ api_version = "v3"
 scopes = ["https://www.googleapis.com/auth/calendar"]
 
 service = create_service(client_secret_file, api_name, api_version, scopes)
+calendar = (
+    service.events()
+    .list(calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com")
+    .execute()
+)
+for item in calendar["items"]:
+    service.events().delete(
+        calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
+        eventId=item["id"],
+    ).execute()
