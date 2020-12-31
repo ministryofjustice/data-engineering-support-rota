@@ -1,9 +1,54 @@
+from datetime import datetime, timedelta
 import os
 import pickle
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+
+
+def next_weekday(date, weekday: int):
+    """Returns the next date of a given weekday.
+
+    Parameters
+    ----------
+    date : datetime
+        The date from which you want get the date of the next occurance of a particular
+        day of the week.
+    weekday : int
+        The weekday you want the next occuring date for.
+
+    Returns
+    -------
+    datetime
+        The date of the next occurance of a particular day of the week from the given
+        date.
+    """
+    days_ahead = weekday - date.weekday()
+    if days_ahead <= 0:  # if the target day has already happened this week
+        days_ahead += 7
+    return date + datetime.timedelta(days_ahead)
+
+
+def weekday_dates(start_date: datetime, end_date: datetime) -> list:
+    """Generates a list of dates excluding weekends between the date range provided.
+
+    Parameters
+    ----------
+    start_date : datetime
+    end_date : datetime
+
+    Returns
+    -------
+    list
+        [description]
+    """
+    dates = []
+    for days_delta in range((end_date - start_date).days + 1):
+        date = start_date + timedelta(days_delta)
+        if date.weekday() not in [5, 6]:
+            dates.append(date)
+    return dates
 
 
 def create_service(client_secret_file, api_name: str, api_version: str, scopes: list):
