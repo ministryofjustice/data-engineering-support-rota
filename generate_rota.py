@@ -114,3 +114,37 @@ for item in calendar["items"]:
         calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
         eventId=item["id"],
     ).execute()
+
+support_team = (
+    ("George", "Alec"),
+    ("Adam", "Darius"),
+    ("Calum", "Thomas"),
+    ("Karik", "Jake"),
+    ("Sam", "Tapan"),
+    ("Jacob", "Anthony"),
+    ("Kimberley", "David"),
+    ("Alec", "George"),
+    ("Darius", "Adam"),
+    ("Thomas", "Calum"),
+    ("Jake", "Karik"),
+    ("Tapan", "Sam"),
+    ("Anthony", "Jacob"),
+    ("David", "Kimberley"),
+)
+
+start_date = datetime.today().date()
+end_date = start_date + timedelta(366)
+dates = weekday_dates(start_date, end_date)
+event = {}
+
+for day in range(len(dates)):
+    event["summary"] = (
+        f"{support_team[day % len(support_team)][0][0]} is on support today with "
+        f"{support_team[day % len(support_team)][1][0]} assisting."
+    )
+    event["start"] = {"date": str(dates[day])}
+    event["end"] = {"date": str(dates[day])}
+
+    service.events().insert(
+        calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com", body=event
+    ).execute()
