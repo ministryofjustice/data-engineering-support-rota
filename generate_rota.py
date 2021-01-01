@@ -124,6 +124,7 @@ support_team = (
     ("Sam", "Tapan"),
     ("Jacob", "Anthony"),
     ("Kimberley", "David"),
+    ("Danjiv", "Lora"),
     # flip the pairs from here
     ("Alec", "George"),
     ("Darius", "Adam"),
@@ -132,6 +133,7 @@ support_team = (
     ("Tapan", "Sam"),
     ("Anthony", "Jacob"),
     ("David", "Kimberley"),
+    ("Lora", "Danjiv"),
 )
 
 start_date = datetime.today().date()
