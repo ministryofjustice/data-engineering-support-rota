@@ -102,18 +102,19 @@ client_secret_file = "data_engineering_support_rota_creds.json"
 api_name = "calendar"
 api_version = "v3"
 scopes = ["https://www.googleapis.com/auth/calendar"]
-
+calendar_id = "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com"
 service = create_service(client_secret_file, api_name, api_version, scopes)
-calendar = (
-    service.events()
-    .list(calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com")
-    .execute()
-)
-for item in calendar["items"]:
-    service.events().delete(
-        calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
-        eventId=item["id"],
-    ).execute()
+
+page_token = None
+while True:
+    events = (
+        service.events().list(calendarId=calendar_id, pageToken=page_token,).execute()
+    )
+    for event in events["items"]:
+        service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
+    page_token = events.get("nextPageToken")
+    if not page_token:
+        break
 
 support_team = (
     ("George", "Alec"),
@@ -123,6 +124,8 @@ support_team = (
     ("Sam", "Tapan"),
     ("Jacob", "Anthony"),
     ("Kimberley", "David"),
+    ("Danjiv", "Lora"),
+    # flip the pairs from here
     ("Alec", "George"),
     ("Darius", "Adam"),
     ("Thomas", "Calum"),
@@ -130,6 +133,7 @@ support_team = (
     ("Tapan", "Sam"),
     ("Anthony", "Jacob"),
     ("David", "Kimberley"),
+    ("Lora", "Danjiv"),
 )
 
 start_date = datetime.today().date()
@@ -144,7 +148,4 @@ for day in range(len(dates)):
     )
     event["start"] = {"date": str(dates[day])}
     event["end"] = {"date": str(dates[day])}
-
-    service.events().insert(
-        calendarId="9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com", body=event
-    ).execute()
+    service.events().insert(calendarId=calendar_id, body=event).execute()
