@@ -107,10 +107,9 @@ service = create_service(client_secret_file, api_name, api_version, scopes)
 
 page_token = None
 while True:
-    events = service.events().list(
-        calendarId=calendar_id,
-        pageToken=page_token,
-    ).execute()
+    events = (
+        service.events().list(calendarId=calendar_id, pageToken=page_token,).execute()
+    )
     for event in events["items"]:
         service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
     page_token = events.get("nextPageToken")
