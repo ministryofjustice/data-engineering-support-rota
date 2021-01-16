@@ -3,7 +3,7 @@ google_calendar_api = {
     "api_name": "calendar",
     "api_version": "v3",
     "scopes": ["https://www.googleapis.com/auth/calendar"],
-    "calendar_id": "i1uercfk0lnn81ngabu0hg1nuk@group.calendar.google.com",
+    "calendar_id": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
 }
 
 date_range = {
