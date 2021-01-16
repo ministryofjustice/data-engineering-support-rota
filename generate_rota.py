@@ -6,28 +6,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
-
-def next_weekday(date, weekday: int):
-    """Returns the next date of a given weekday.
-
-    Parameters
-    ----------
-    date : datetime
-        The date from which you want get the date of the next occurance of a particular
-        day of the week.
-    weekday : int
-        The weekday you want the next occuring date for.
-
-    Returns
-    -------
-    datetime
-        The date of the next occurance of a particular day of the week from the given
-        date.
-    """
-    days_ahead = weekday - date.weekday()
-    if days_ahead <= 0:  # if the target day has already happened this week
-        days_ahead += 7
-    return date + datetime.timedelta(days_ahead)
+from settings import google_calendar_api, date_range, support_team
 
 
 def weekday_dates(start_date: datetime, end_date: datetime) -> list:
@@ -40,8 +19,7 @@ def weekday_dates(start_date: datetime, end_date: datetime) -> list:
 
     Returns
     -------
-    list
-        [description]
+    dates: list
     """
     dates = []
     for days_delta in range((end_date - start_date).days + 1):
@@ -70,9 +48,7 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
     service
         A connection to the Google Calendar API
     """
-
     cred = None
-
     pickle_file = f"token_{api_name}_{api_version}.pickle"
 
     if os.path.exists(pickle_file):
@@ -89,22 +65,77 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
         with open(pickle_file, "wb") as token:
             pickle.dump(cred, token)
 
-    try:
-        service = build(api_name, api_version, credentials=cred)
-        print(api_name, "service created successfully")
-        return service
-    except Exception as e:
-        print(e)
-        return None
+        try:
+            service = build(api_name, api_version, credentials=cred)
+            print(api_name, "service created successfully")
+            return service
+        except Exception as e:
+            print(e)
+            os.remove(pickle_file)
+            return None
 
 
-client_secret_file = "data_engineering_support_rota_creds.json"
-api_name = "calendar"
-api_version = "v3"
-scopes = ["https://www.googleapis.com/auth/calendar"]
-calendar_id = "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com"
+client_secret_file = google_calendar_api["client_secret_file"]
+api_name = google_calendar_api["api_name"]
+api_version = google_calendar_api["api_version"]
+scopes = google_calendar_api["scopes"]
+calendar_id = google_calendar_api["calendar_id"]
 service = create_service(client_secret_file, api_name, api_version, scopes)
+event = {}
 
+start_date = datetime.strptime(date_range["start_date"], "%Y-%m-%d").date()
+end_date = datetime.strptime(date_range["end_date"], "%Y-%m-%d").date()
+weekday_dates = weekday_dates(start_date, end_date)
+
+g_sevens = support_team["g_sevens"]
+the_rest = support_team["the_rest"]
+g_seven_leads = []
+the_rest_leads = []
+g_seven_index_splits = [len(g_sevens) - 1]
+the_rest_index_splits = [(len(g_sevens) + len(the_rest)) - 1]
+g_sevens_index = []
+the_rest_index = []
+support_pairs = {}
+
+# two lists of pairs leading support for the day (to be combined)
+for i in range(len(weekday_dates)):
+    g_seven_leads.append((g_sevens[i % len(g_sevens)], the_rest[i % len(the_rest)]))
+    the_rest_leads.append((the_rest[i % len(the_rest)], g_sevens[i % len(g_sevens)]))
+
+# index values where support transistions from g_seven_leads to the_rest_leads
+quotient = len(weekday_dates) // (len(g_sevens) + len(the_rest))
+for i in range(2, quotient + 1):
+    g_seven_index_splits.append(
+        (i * (len(g_sevens) + len(the_rest)) - len(the_rest)) - 1
+    )
+    the_rest_index_splits.append((i * (len(g_sevens) + len(the_rest))) - 1)
+
+# index values for the respective "leads" lists
+i = 0
+while i <= len(weekday_dates):
+    if i not in g_seven_index_splits:
+        g_sevens_index.append(i)
+        i += 1
+    elif i not in the_rest_index_splits:
+        g_sevens_index.append(i)
+        i += len(the_rest) + 1
+
+i = len(g_sevens) - 1
+while i <= len(weekday_dates):
+    if i not in the_rest_index_splits:
+        i += 1
+        the_rest_index.append(i)
+    elif i not in g_seven_index_splits:
+        i += len(g_sevens) + 1
+        the_rest_index.append(i)
+
+# combine "leads" lists to give final pairs
+for i in range(len(g_sevens_index[: len(weekday_dates)])):
+    support_pairs[g_sevens_index[i]] = g_seven_leads[i]
+for i in range(len(the_rest_index[: len(weekday_dates)])):
+    support_pairs[the_rest_index[i]] = the_rest_leads[i]
+
+# delete all events from calendar
 page_token = None
 while True:
     events = (
@@ -116,36 +147,12 @@ while True:
     if not page_token:
         break
 
-support_team = (
-    ("George", "Alec"),
-    ("Adam", "Darius"),
-    ("Calum", "Thomas"),
-    ("Karik", "Jake"),
-    ("Sam", "Tapan"),
-    ("Jacob", "Anthony"),
-    ("Kimberley", "David"),
-    ("Danjiv", "Lora"),
-    # flip the pairs from here
-    ("Alec", "George"),
-    ("Darius", "Adam"),
-    ("Thomas", "Calum"),
-    ("Jake", "Karik"),
-    ("Tapan", "Sam"),
-    ("Anthony", "Jacob"),
-    ("David", "Kimberley"),
-    ("Lora", "Danjiv"),
-)
-
-start_date = datetime.today().date()
-end_date = start_date + timedelta(366)
-dates = weekday_dates(start_date, end_date)
-event = {}
-
-for day in range(len(dates)):
+# populate calendar with events
+for i in range(len(weekday_dates)):
     event["summary"] = (
-        f"{support_team[day % len(support_team)][0]} is on support today with "
-        f"{support_team[day % len(support_team)][1]} assisting"
+        f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
+        "assisting"
     )
-    event["start"] = {"date": str(dates[day])}
-    event["end"] = {"date": str(dates[day])}
+    event["start"] = {"date": str(weekday_dates[i])}
+    event["end"] = {"date": str(weekday_dates[i])}
     service.events().insert(calendarId=calendar_id, body=event).execute()

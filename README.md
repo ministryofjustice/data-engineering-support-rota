@@ -1,24 +1,26 @@
-# Data Engineering Support Rota
+# Data engineering support rota
 This repo contains a script that populates a Google Calendar with a support rota for the Data Engineering team.
 
 ## Usage
-To work with this repo, first setup Python 3.8 or later (the use of a virtual envionment of some sort is also recommended) and git-crypt. You'll ned to add your GPG key to the repo to decrypt it, details about how to do so can be found [here](.git-crypt/README.md).
+To work with this repo, first setup Python (this module has been tested with 3.8. The use of a virtual envionment of some sort is also recommended) and git-crypt. You'll ned to add your GPG key to the repo to decrypt it, details about how to do so can be found [here](.git-crypt/README.md).
 
 WARNING:
 :warning: Don't use this script on a calendar that is used for anything other than a support rota. The script will delete any events in the calendar before creating new ones, so you don't have to worry about creating duplicate events. :warning:
 
-- Log into the Google Calendar with the credentials provided. These creds are for a dev calendar with the Google Calendar API enabled. You can use the `generate_rota.py` script to add events to any Google Calendar, but you will need to make sure API access is enabled.
+- Start by updating `settings.py` where you'll find three dictionaries:
+    - Google Calendar API connection settings.
+    - Adjust the start and end dates as necessary.
+    - The support team is defined as those that are and aren't G7's.
+
+- Log into the Google Calendar with the credentials provided in `google_calendar_login.txt`. These creds are for a dev calendar with the Google Calendar API enabled. You can use the `generate_rota.py` script to add events to any Google Calendar, but you will need to make sure API access is enabled.
 - Run `pip install -r requirements.txt` (from within your virtual environment).
 - Run `generate_rota.py`.
     - A browser window will open and you'll have to accept the access request.
     - A session token gets created so you don't have to do this every time.
-    - If the rest of the scrip doesn't run immediately after accepting the access request, re-run it.
+    - If the rest of the script doesn't run immediately after accepting the access request, re-run it.
+    - If the session token has expired, it gets deleted when you run the script. Run it again at this point.
 
-- By default the script will create a years worth of events (on working days only) but you can adjust the start and end dates as necessary.
-- The support team is defined in a tuple of tuples.
-    - Enter the persons name leading support for the day in index 0 and the person assiting in index 1.
-    - If there is more than a pair supporting on a particular day, get creative.
-    - See [Data Engineering Support Rota](https://github.com/moj-analytical-services/data-engineering/wiki/Data-Engineering-Support-Rota) for more details.
+- See the [data engineering wiki](https://github.com/moj-analytical-services/data-engineering/wiki/Data-Engineering-Support-Rota) for more details about support.
 
 ## Githooks
 This repo comes with some githooks to make standard checks before you commit files to Github. The checks are: 
