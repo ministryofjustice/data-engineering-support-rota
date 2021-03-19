@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import pickle
+import random
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -97,12 +98,14 @@ g_sevens_index = []
 the_rest_index = []
 support_pairs = {}
 
-# two lists of pairs leading support for the day (to be combined)
+# Two lists of pairs leading support for the day (to be combined)
 for i in range(len(weekday_dates)):
     g_seven_leads.append((g_sevens[i % len(g_sevens)], the_rest[i % len(the_rest)]))
     the_rest_leads.append((the_rest[i % len(the_rest)], g_sevens[i % len(g_sevens)]))
+random.shuffle(g_seven_leads)
+random.shuffle(the_rest_leads)
 
-# index values where support transistions from g_seven_leads to the_rest_leads
+# Index values where support transistions from g_seven_leads to the_rest_leads
 quotient = len(weekday_dates) // (len(g_sevens) + len(the_rest))
 for i in range(2, quotient + 1):
     g_seven_index_splits.append(
@@ -110,7 +113,7 @@ for i in range(2, quotient + 1):
     )
     the_rest_index_splits.append((i * (len(g_sevens) + len(the_rest))) - 1)
 
-# index values for the respective "leads" lists
+# Index values for the respective "leads" lists
 i = 0
 while i <= len(weekday_dates):
     if i not in g_seven_index_splits:
@@ -142,7 +145,10 @@ while True:
         service.events().list(calendarId=calendar_id, pageToken=page_token,).execute()
     )
     for event in events["items"]:
-        service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
+        if datetime.strptime(event["start"]["date"], "%Y-%m-%d").date() >= start_date:
+            service.events().delete(
+                calendarId=calendar_id, eventId=event["id"]
+            ).execute()
     page_token = events.get("nextPageToken")
     if not page_token:
         break
