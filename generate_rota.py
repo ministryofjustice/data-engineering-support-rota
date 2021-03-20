@@ -10,24 +10,71 @@ from google.auth.transport.requests import Request
 from settings import google_calendar_api, date_range, support_team
 
 
-def weekday_dates(start_date: datetime, end_date: datetime) -> list:
+def string_to_datetime(date: str) -> datetime:
+    return datetime.strptime(date, "%Y-%m-%d").date()
+
+
+def get_workday_dates(start_date: datetime, n_days: int) -> list:
     """Generates a list of dates excluding weekends between the date range provided.
 
     Parameters
     ----------
     start_date : datetime
-    end_date : datetime
+    n_days: int
 
     Returns
     -------
-    dates: list
+    list
     """
     dates = []
-    for days_delta in range((end_date - start_date).days + 1):
+    days_delta = 0
+    while len(dates) != n_days:
         date = start_date + timedelta(days_delta)
+        days_delta += 1
         if date.weekday() not in [5, 6]:
             dates.append(date)
     return dates
+
+
+def repeat_and_randomise_without_consecutive_elements(
+    input_list: list, n_repeats: int
+) -> list:
+    """Repeats a list the given number of times and randomises it's elements whilst
+    ensuring no two consecutive values are equal.
+
+    Parameters
+    ----------
+    input_list : list
+        The list you want to repeat and randomise.
+    n_repeats : int
+        The number of times you want to repeat the input list.
+
+    Returns
+    -------
+    list
+        A list of length n_repeats * len(input_list), randomised with no two consecutive
+        values being equal.
+
+    Raises
+    ------
+    ValueError
+        If the input list contains duplicate values.
+    """
+
+    if len(set(input_list)) != len(input_list):
+        raise ValueError("Remove the duplicate value in this list: ", input_list)
+
+    output = list(input_list)
+    random.shuffle(output)
+
+    for n in range(n_repeats - 1):
+        shuffle_list = [element for element in input_list if element not in output[-1]]
+        random.shuffle(shuffle_list)
+        shuffle_list.append(output[-1])
+        shuffle_list[1:] = random.sample(shuffle_list[1:], len(shuffle_list) - 1)
+        output.extend(shuffle_list)
+
+    return output
 
 
 def create_service(client_secret_file, api_name: str, api_version: str, scopes: list):
@@ -84,59 +131,39 @@ calendar_id = google_calendar_api["calendar_id"]
 service = create_service(client_secret_file, api_name, api_version, scopes)
 event = {}
 
-start_date = datetime.strptime(date_range["start_date"], "%Y-%m-%d").date()
-end_date = datetime.strptime(date_range["end_date"], "%Y-%m-%d").date()
-weekday_dates = weekday_dates(start_date, end_date)
-
 g_sevens = support_team["g_sevens"]
-the_rest = support_team["the_rest"]
-g_seven_leads = []
-the_rest_leads = []
-g_seven_index_splits = [len(g_sevens) - 1]
-the_rest_index_splits = [(len(g_sevens) + len(the_rest)) - 1]
-g_sevens_index = []
-the_rest_index = []
-support_pairs = {}
+everyone_else = support_team["everyone_else"]
+support_pairs = []
 
-# Two lists of pairs leading support for the day (to be combined)
-for i in range(len(weekday_dates)):
-    g_seven_leads.append((g_sevens[i % len(g_sevens)], the_rest[i % len(the_rest)]))
-    the_rest_leads.append((the_rest[i % len(the_rest)], g_sevens[i % len(g_sevens)]))
-random.shuffle(g_seven_leads)
-random.shuffle(the_rest_leads)
+start_date = string_to_datetime(date_range["start_date"])
+n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
+workday_dates = get_workday_dates(start_date, n_days)
+end_date = workday_dates[-1]
 
-# Index values where support transistions from g_seven_leads to the_rest_leads
-quotient = len(weekday_dates) // (len(g_sevens) + len(the_rest))
-for i in range(2, quotient + 1):
-    g_seven_index_splits.append(
-        (i * (len(g_sevens) + len(the_rest)) - len(the_rest)) - 1
-    )
-    the_rest_index_splits.append((i * (len(g_sevens) + len(the_rest))) - 1)
+g_sevens_randomised = repeat_and_randomise_without_consecutive_elements(
+    input_list=g_sevens, n_repeats=(len(workday_dates) // len(g_sevens)) + 1
+)
+everyone_else_randomised = repeat_and_randomise_without_consecutive_elements(
+    input_list=everyone_else, n_repeats=(len(workday_dates) // len(everyone_else)) + 1
+)
 
-# Index values for the respective "leads" lists
-i = 0
-while i <= len(weekday_dates):
-    if i not in g_seven_index_splits:
-        g_sevens_index.append(i)
-        i += 1
-    elif i not in the_rest_index_splits:
-        g_sevens_index.append(i)
-        i += len(the_rest) + 1
+index = None
+for i in range(date_range["n_cycles"]):
 
-i = len(g_sevens) - 1
-while i <= len(weekday_dates):
-    if i not in the_rest_index_splits:
-        i += 1
-        the_rest_index.append(i)
-    elif i not in g_seven_index_splits:
-        i += len(g_sevens) + 1
-        the_rest_index.append(i)
+    for j in range(len(g_sevens)):
+        if index is None:
+            index = 0
+        else:
+            index += 1
+        support_pairs.append(
+            (g_sevens_randomised[index], everyone_else_randomised[index])
+        )
 
-# combine "leads" lists to give final pairs
-for i in range(len(g_sevens_index[: len(weekday_dates)])):
-    support_pairs[g_sevens_index[i]] = g_seven_leads[i]
-for i in range(len(the_rest_index[: len(weekday_dates)])):
-    support_pairs[the_rest_index[i]] = the_rest_leads[i]
+    for k in range(len(everyone_else)):
+        index += 1
+        support_pairs.append(
+            (everyone_else_randomised[index], g_sevens_randomised[index])
+        )
 
 # delete all events from calendar
 page_token = None
@@ -154,11 +181,11 @@ while True:
         break
 
 # populate calendar with events
-for i in range(len(weekday_dates)):
+for i in range(n_days):
     event["summary"] = (
         f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
         "assisting"
     )
-    event["start"] = {"date": str(weekday_dates[i])}
-    event["end"] = {"date": str(weekday_dates[i])}
+    event["start"] = {"date": str(workday_dates[i])}
+    event["end"] = {"date": str(workday_dates[i])}
     service.events().insert(calendarId=calendar_id, body=event).execute()
