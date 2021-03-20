@@ -36,23 +36,23 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
     return dates
 
 
-def repeat_and_randomise_without_consecutive_elements(
+def repeat_and_shuffle_without_consecutive_elements(
     input_list: list, n_repeats: int
 ) -> list:
-    """Repeats a list the given number of times and randomises it's elements whilst
+    """Repeats a list the given number of times and shuffles it's elements whilst
     ensuring no two consecutive values are equal.
 
     Parameters
     ----------
     input_list : list
-        The list you want to repeat and randomise.
+        The list you want to repeat and shuffle.
     n_repeats : int
         The number of times you want to repeat the input list.
 
     Returns
     -------
     list
-        A list of length n_repeats * len(input_list), randomised with no two consecutive
+        A list of length n_repeats * len(input_list), shuffled with no two consecutive
         values being equal.
 
     Raises
@@ -140,10 +140,10 @@ n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
 workday_dates = get_workday_dates(start_date, n_days)
 end_date = workday_dates[-1]
 
-g_sevens_randomised = repeat_and_randomise_without_consecutive_elements(
+g_sevens_shuffled = repeat_and_shuffle_without_consecutive_elements(
     input_list=g_sevens, n_repeats=(len(workday_dates) // len(g_sevens)) + 1
 )
-everyone_else_randomised = repeat_and_randomise_without_consecutive_elements(
+everyone_else_shuffled = repeat_and_shuffle_without_consecutive_elements(
     input_list=everyone_else, n_repeats=(len(workday_dates) // len(everyone_else)) + 1
 )
 
@@ -155,15 +155,11 @@ for i in range(date_range["n_cycles"]):
             index = 0
         else:
             index += 1
-        support_pairs.append(
-            (g_sevens_randomised[index], everyone_else_randomised[index])
-        )
+        support_pairs.append((g_sevens_shuffled[index], everyone_else_shuffled[index]))
 
     for k in range(len(everyone_else)):
         index += 1
-        support_pairs.append(
-            (everyone_else_randomised[index], g_sevens_randomised[index])
-        )
+        support_pairs.append((everyone_else_shuffled[index], g_sevens_shuffled[index]))
 
 # delete all events from calendar
 page_token = None
@@ -189,3 +185,11 @@ for i in range(n_days):
     event["start"] = {"date": str(workday_dates[i])}
     event["end"] = {"date": str(workday_dates[i])}
     service.events().insert(calendarId=calendar_id, body=event).execute()
+
+for individual in g_sevens.extend[everyone_else]:
+    count = 0
+    for pair in support_pairs:
+        if individual in pair:
+            count += 1
+
+    print(f"{individual} has been scheduled to work support {count} times.")
