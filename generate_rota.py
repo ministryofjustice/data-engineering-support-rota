@@ -41,45 +41,45 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
     return dates
 
 
-def repeat_and_shuffle_without_consecutive_elements(
-    input_list: list, n_repeats: int
-) -> list:
-    """Repeats a list the given number of times and shuffles its elements whilst
-    ensuring no two consecutive values are equal.
+# def repeat_and_shuffle_without_consecutive_elements(
+#     input_list: list, n_repeats: int
+# ) -> list:
+#     """Repeats a list the given number of times and shuffles its elements whilst
+#     ensuring no two consecutive values are equal.
 
-    Parameters
-    ----------
-    input_list : list
-        The list you want to repeat and shuffle.
-    n_repeats : int
-        The number of times you want to repeat the input list.
+#     Parameters
+#     ----------
+#     input_list : list
+#         The list you want to repeat and shuffle.
+#     n_repeats : int
+#         The number of times you want to repeat the input list.
 
-    Returns
-    -------
-    list
-        A list of length n_repeats * len(input_list), shuffled with no two consecutive
-        values being equal.
+#     Returns
+#     -------
+#     list
+#         A list of length n_repeats * len(input_list), shuffled with no two consecutive
+#         values being equal.
 
-    Raises
-    ------
-    ValueError
-        If the input list contains duplicate values.
-    """
+#     Raises
+#     ------
+#     ValueError
+#         If the input list contains duplicate values.
+#     """
 
-    if len(set(input_list)) != len(input_list):
-        raise ValueError("Remove the duplicate value in this list: ", input_list)
+#     if len(set(input_list)) != len(input_list):
+#         raise ValueError("Remove the duplicate value in this list: ", input_list)
 
-    output = list(input_list)
-    random.shuffle(output)
+#     output = list(input_list)
+#     random.shuffle(output)
 
-    for i in range(n_repeats - 1):
-        shuffle_list = [element for element in input_list if element not in output[-1]]
-        random.shuffle(shuffle_list)
-        shuffle_list.append(output[-1])
-        shuffle_list[1:] = random.sample(shuffle_list[1:], len(shuffle_list) - 1)
-        output.extend(shuffle_list)
+#     for i in range(n_repeats - 1):
+#         shuffle_list = [element for element in input_list if element not in output[-1]]
+#         random.shuffle(shuffle_list)
+#         shuffle_list.append(output[-1])
+#         shuffle_list[1:] = random.sample(shuffle_list[1:], len(shuffle_list) - 1)
+#         output.extend(shuffle_list)
 
-    return output
+#     return output
 
 
 def create_service(client_secret_file, api_name: str, api_version: str, scopes: list):
@@ -148,12 +148,39 @@ n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
 workday_dates = get_workday_dates(start_date, n_days)
 end_date = workday_dates[-1]
 
-g_sevens_shuffled = repeat_and_shuffle_without_consecutive_elements(
-    input_list=g_sevens, n_repeats=(len(workday_dates) // len(g_sevens)) + 1
-)
-everyone_else_shuffled = repeat_and_shuffle_without_consecutive_elements(
-    input_list=everyone_else, n_repeats=(len(workday_dates) // len(everyone_else)) + 1
-)
+# g_sevens_shuffled = repeat_and_shuffle_without_consecutive_elements(
+#     input_list=g_sevens, n_repeats=(len(workday_dates) // len(g_sevens)) + 1
+# )
+# everyone_else_shuffled = repeat_and_shuffle_without_consecutive_elements(
+#     input_list=everyone_else, n_repeats=(len(workday_dates) // len(everyone_else)) + 1
+# )
+
+# index = None
+# for i in range(date_range["n_cycles"]):
+#     for j in range(len(g_sevens)):
+#         if index is None:
+#             index = 0
+#         else:
+#             index += 1
+#         support_pairs.append((g_sevens_shuffled[index], everyone_else_shuffled[index]))
+#         print(g_sevens_shuffled[index], everyone_else_shuffled[index])
+
+#     for k in range(len(everyone_else)):
+#         index += 1
+#         support_pairs.append((everyone_else_shuffled[index], g_sevens_shuffled[index]))
+#         print(everyone_else_shuffled[index], g_sevens_shuffled[index])
+
+g_sevens_long = []
+while len(g_sevens_long) < n_days:
+    g_sevens_long.extend(g_sevens)
+
+everyone_else_long = []
+while len(everyone_else_long) < n_days:
+    everyone_else_long.extend(everyone_else)
+
+support_pairs_preprocessing = []
+for i in range(n_days):
+    support_pairs_preprocessing.append((g_sevens_long[i], everyone_else_long[i]))
 
 index = None
 for i in range(date_range["n_cycles"]):
@@ -162,13 +189,24 @@ for i in range(date_range["n_cycles"]):
             index = 0
         else:
             index += 1
-        support_pairs.append((g_sevens_shuffled[index], everyone_else_shuffled[index]))
+        support_pairs.append(support_pairs_preprocessing[index])
+        print(*support_pairs_preprocessing[index])
 
     for k in range(len(everyone_else)):
         index += 1
-        support_pairs.append((everyone_else_shuffled[index], g_sevens_shuffled[index]))
+        support_pairs.append(
+            (
+                support_pairs_preprocessing[index][1],
+                support_pairs_preprocessing[index][0],
+            )
+        )
+        print(
+            support_pairs_preprocessing[index][1],
+            support_pairs_preprocessing[index][0],
+        )
 
 # Delete events from calendar
+print(f"Deleting all calendar events from {date_range['start_date']} onwards.")
 page_token = None
 while True:
     response = (
@@ -183,7 +221,6 @@ while True:
     events = response.get("items", [])
 
     for event in events:
-        print(f"Deleting calendar event id: {event['id']}")
         service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
     page_token = response.get("nextPageToken", None)
 
