@@ -69,7 +69,6 @@ def repeat_and_shuffle_without_consecutive_elements(
 
     output = list(input_list)
     random.shuffle(output)
-
     for n in range(n_repeats - 1):
         shuffle_list = [element for element in input_list if element not in output[-1]]
         random.shuffle(shuffle_list)
@@ -126,15 +125,6 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
             return None
 
 
-service = create_service(
-    google_calendar_api["client_secret_file"],
-    google_calendar_api["api_name"],
-    google_calendar_api["api_version"],
-    google_calendar_api["scopes"],
-)
-calendar_id = google_calendar_api["calendar_id"]
-event = {}
-
 g_sevens = support_team["g_sevens"]
 everyone_else = support_team["everyone_else"]
 support_pairs = []
@@ -165,7 +155,16 @@ for i in range(date_range["n_cycles"]):
         index += 1
         support_pairs.append((everyone_else_shuffled[index], g_sevens_shuffled[index]))
 
-# delete all events from calendar
+service = create_service(
+    google_calendar_api["client_secret_file"],
+    google_calendar_api["api_name"],
+    google_calendar_api["api_version"],
+    google_calendar_api["scopes"],
+)
+calendar_id = google_calendar_api["calendar_id"]
+event = {}
+
+# delete events from calendar
 page_token = None
 while True:
     events = (
@@ -190,8 +189,7 @@ for i in range(n_days):
     event["end"] = {"date": str(workday_dates[i])}
     # service.events().insert(calendarId=calendar_id, body=event).execute()
 
-everyone = []
-everyone.extend(g_sevens)
+everyone = list(g_sevens)
 everyone.extend(everyone_else)
 
 for individual in everyone:
