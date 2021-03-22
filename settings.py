@@ -3,7 +3,7 @@ google_calendar_api = {
     "api_name": "calendar",
     "api_version": "v3",
     "scopes": ["https://www.googleapis.com/auth/calendar"],
-    "calendar_id": "qk7dfadvnmao3lgvb207pqd1bk@group.calendar.google.com",
+    "calendar_id": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
 }
 
 support_team = {
@@ -24,5 +24,5 @@ support_team = {
 
 date_range = {
     "start_date": "2021-03-22",
-    "n_cycles": 3,
+    "n_cycles": 15,
 }
