@@ -112,7 +112,6 @@ end_date = workday_dates[-1]
 g_sevens_long = []
 while len(g_sevens_long) < n_days:
     g_sevens_long.extend(g_sevens)
-
 everyone_else_long = []
 while len(everyone_else_long) < n_days:
     everyone_else_long.extend(everyone_else)
