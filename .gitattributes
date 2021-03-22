@@ -1,3 +1,2 @@
 google_calendar_login.txt filter=git-crypt diff=git-crypt merge=git-crypt
 data_engineering_support_rota_creds.json filter=git-crypt diff=git-crypt merge=git-crypt
-calenda_api_v3_token.json filter=git-crypt diff=git-crypt merge=git-crypt
