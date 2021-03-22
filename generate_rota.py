@@ -11,6 +11,9 @@ from settings import google_calendar_api, date_range, support_team
 
 
 def string_to_datetime(date: str) -> datetime:
+    """Takes a date as a sting of the format YYYY-MM-DD and converts it to a datetime
+    object.
+    """
     return datetime.strptime(date, "%Y-%m-%d").date()
 
 
@@ -39,7 +42,7 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
 def repeat_and_shuffle_without_consecutive_elements(
     input_list: list, n_repeats: int
 ) -> list:
-    """Repeats a list the given number of times and shuffles it's elements whilst
+    """Repeats a list the given number of times and shuffles its elements whilst
     ensuring no two consecutive values are equal.
 
     Parameters
@@ -123,12 +126,13 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
             return None
 
 
-client_secret_file = google_calendar_api["client_secret_file"]
-api_name = google_calendar_api["api_name"]
-api_version = google_calendar_api["api_version"]
-scopes = google_calendar_api["scopes"]
+service = create_service(
+    google_calendar_api["client_secret_file"],
+    google_calendar_api["api_name"],
+    google_calendar_api["api_version"],
+    google_calendar_api["scopes"],
+)
 calendar_id = google_calendar_api["calendar_id"]
-service = create_service(client_secret_file, api_name, api_version, scopes)
 event = {}
 
 g_sevens = support_team["g_sevens"]
@@ -184,12 +188,15 @@ for i in range(n_days):
     )
     event["start"] = {"date": str(workday_dates[i])}
     event["end"] = {"date": str(workday_dates[i])}
-    service.events().insert(calendarId=calendar_id, body=event).execute()
+    # service.events().insert(calendarId=calendar_id, body=event).execute()
 
-for individual in g_sevens.extend[everyone_else]:
+everyone = []
+everyone.extend(g_sevens)
+everyone.extend(everyone_else)
+
+for individual in everyone:
     count = 0
     for pair in support_pairs:
         if individual in pair:
             count += 1
-
     print(f"{individual} has been scheduled to work support {count} times.")
