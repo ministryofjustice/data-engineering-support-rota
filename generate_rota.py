@@ -41,47 +41,6 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
     return dates
 
 
-# def repeat_and_shuffle_without_consecutive_elements(
-#     input_list: list, n_repeats: int
-# ) -> list:
-#     """Repeats a list the given number of times and shuffles its elements whilst
-#     ensuring no two consecutive values are equal.
-
-#     Parameters
-#     ----------
-#     input_list : list
-#         The list you want to repeat and shuffle.
-#     n_repeats : int
-#         The number of times you want to repeat the input list.
-
-#     Returns
-#     -------
-#     list
-#         A list of length n_repeats * len(input_list), shuffled with no two consecutive
-#         values being equal.
-
-#     Raises
-#     ------
-#     ValueError
-#         If the input list contains duplicate values.
-#     """
-
-#     if len(set(input_list)) != len(input_list):
-#         raise ValueError("Remove the duplicate value in this list: ", input_list)
-
-#     output = list(input_list)
-#     random.shuffle(output)
-
-#     for i in range(n_repeats - 1):
-#         shuffle_list = [element for element in input_list if element not in output[-1]]
-#         random.shuffle(shuffle_list)
-#         shuffle_list.append(output[-1])
-#         shuffle_list[1:] = random.sample(shuffle_list[1:], len(shuffle_list) - 1)
-#         output.extend(shuffle_list)
-
-#     return output
-
-
 def create_service(client_secret_file, api_name: str, api_version: str, scopes: list):
     """Creates a serive connection to the Google Calendar API.
 
@@ -117,13 +76,13 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
             flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
             creds = flow.run_local_server(port=0)
 
+        print("Writing updated token to file...")
         with open(pickle_file, "w") as token:
-            print("Writing updated token to file...")
             token.write(creds.to_json())
 
     try:
         service = build(serviceName=api_name, version=api_version, credentials=creds)
-        print(api_name.capitalize(), "API service created successfully")
+        print(api_name.capitalize(), "API service created successfully.")
         return service
     except Exception as error:
         print(error)
@@ -139,36 +98,16 @@ service = create_service(
 calendar_id = google_calendar_api["calendar_id"]
 event_body = {}
 
-g_sevens = support_team["g_sevens"]
-everyone_else = support_team["everyone_else"]
+g_sevens = list(support_team["g_sevens"])
+random.shuffle(g_sevens)
+everyone_else = list(support_team["everyone_else"])
+random.shuffle(everyone_else)
 support_pairs = []
 
 start_date = string_to_datetime(date_range["start_date"])
 n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
 workday_dates = get_workday_dates(start_date, n_days)
 end_date = workday_dates[-1]
-
-# g_sevens_shuffled = repeat_and_shuffle_without_consecutive_elements(
-#     input_list=g_sevens, n_repeats=(len(workday_dates) // len(g_sevens)) + 1
-# )
-# everyone_else_shuffled = repeat_and_shuffle_without_consecutive_elements(
-#     input_list=everyone_else, n_repeats=(len(workday_dates) // len(everyone_else)) + 1
-# )
-
-# index = None
-# for i in range(date_range["n_cycles"]):
-#     for j in range(len(g_sevens)):
-#         if index is None:
-#             index = 0
-#         else:
-#             index += 1
-#         support_pairs.append((g_sevens_shuffled[index], everyone_else_shuffled[index]))
-#         print(g_sevens_shuffled[index], everyone_else_shuffled[index])
-
-#     for k in range(len(everyone_else)):
-#         index += 1
-#         support_pairs.append((everyone_else_shuffled[index], g_sevens_shuffled[index]))
-#         print(everyone_else_shuffled[index], g_sevens_shuffled[index])
 
 g_sevens_long = []
 while len(g_sevens_long) < n_days:
@@ -190,7 +129,6 @@ for i in range(date_range["n_cycles"]):
         else:
             index += 1
         support_pairs.append(support_pairs_preprocessing[index])
-        print(*support_pairs_preprocessing[index])
 
     for k in range(len(everyone_else)):
         index += 1
@@ -200,13 +138,8 @@ for i in range(date_range["n_cycles"]):
                 support_pairs_preprocessing[index][0],
             )
         )
-        print(
-            support_pairs_preprocessing[index][1],
-            support_pairs_preprocessing[index][0],
-        )
 
-# Delete events from calendar
-print(f"Deleting all calendar events from {date_range['start_date']} onwards.")
+print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
 page_token = None
 while True:
     response = (
@@ -227,7 +160,8 @@ while True:
     if not page_token:
         break
 
-# Populate calendar with events
+
+print("Writing rota to calendar...")
 for i in range(n_days):
     event_body["summary"] = (
         f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
@@ -240,6 +174,7 @@ for i in range(n_days):
 everyone = list(g_sevens)
 everyone.extend(everyone_else)
 
+print(f"\nIn {n_days} working days:")
 for individual in everyone:
     count = 0
     for pair in support_pairs:
