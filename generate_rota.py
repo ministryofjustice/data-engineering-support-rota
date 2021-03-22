@@ -31,11 +31,13 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
     """
     dates = []
     days_delta = 0
+
     while len(dates) != n_days:
         date = start_date + timedelta(days_delta)
         days_delta += 1
         if date.weekday() not in [5, 6]:
             dates.append(date)
+
     return dates
 
 
@@ -69,7 +71,8 @@ def repeat_and_shuffle_without_consecutive_elements(
 
     output = list(input_list)
     random.shuffle(output)
-    for n in range(n_repeats - 1):
+
+    for i in range(n_repeats - 1):
         shuffle_list = [element for element in input_list if element not in output[-1]]
         random.shuffle(shuffle_list)
         shuffle_list.append(output[-1])
@@ -115,18 +118,26 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
             creds = flow.run_local_server(port=0)
 
         with open(pickle_file, "w") as token:
-            print("Writing updated token to file")
+            print("Writing updated token to file...")
             token.write(creds.to_json())
 
     try:
         service = build(serviceName=api_name, version=api_version, credentials=creds)
         print(api_name.capitalize(), "API service created successfully")
         return service
-    except Exception as e:
-        print(e)
-        os.remove(pickle_file)
+    except Exception as error:
+        print(error)
         return None
 
+
+service = create_service(
+    google_calendar_api["client_secret_file"],
+    google_calendar_api["api_name"],
+    google_calendar_api["api_version"],
+    google_calendar_api["scopes"],
+)
+calendar_id = google_calendar_api["calendar_id"]
+event_body = {}
 
 g_sevens = support_team["g_sevens"]
 everyone_else = support_team["everyone_else"]
@@ -146,7 +157,6 @@ everyone_else_shuffled = repeat_and_shuffle_without_consecutive_elements(
 
 index = None
 for i in range(date_range["n_cycles"]):
-
     for j in range(len(g_sevens)):
         if index is None:
             index = 0
@@ -158,16 +168,7 @@ for i in range(date_range["n_cycles"]):
         index += 1
         support_pairs.append((everyone_else_shuffled[index], g_sevens_shuffled[index]))
 
-service = create_service(
-    google_calendar_api["client_secret_file"],
-    google_calendar_api["api_name"],
-    google_calendar_api["api_version"],
-    google_calendar_api["scopes"],
-)
-calendar_id = google_calendar_api["calendar_id"]
-event = {}
-
-# delete events from calendar
+# Delete events from calendar
 page_token = None
 while True:
     response = (
@@ -175,26 +176,29 @@ while True:
         .list(
             calendarId=calendar_id,
             pageToken=page_token,
+            timeMin=date_range["start_date"] + "T00:00:00.000000Z",
         )
         .execute()
     )
     events = response.get("items", [])
+
     for event in events:
-        print(f"Deleting calendar event id {event['id']}")
+        print(f"Deleting calendar event id: {event['id']}")
         service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
     page_token = response.get("nextPageToken", None)
+
     if not page_token:
         break
 
-# populate calendar with events
+# Populate calendar with events
 for i in range(n_days):
-    event["summary"] = (
+    event_body["summary"] = (
         f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
         "assisting"
     )
-    event["start"] = {"date": str(workday_dates[i])}
-    event["end"] = {"date": str(workday_dates[i])}
-    service.events().insert(calendarId=calendar_id, body=event).execute()
+    event_body["start"] = {"date": str(workday_dates[i])}
+    event_body["end"] = {"date": str(workday_dates[i])}
+    service.events().insert(calendarId=calendar_id, body=event_body).execute()
 
 everyone = list(g_sevens)
 everyone.extend(everyone_else)
