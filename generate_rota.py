@@ -159,7 +159,6 @@ while True:
     if not page_token:
         break
 
-
 print("Writing rota to calendar...")
 for i in range(n_days):
     event_body["summary"] = (
