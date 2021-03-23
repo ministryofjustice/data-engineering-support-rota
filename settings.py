@@ -7,8 +7,8 @@ google_calendar_api = {
 }
 
 support_team = {
-    "g_sevens": ["George", "Adam", "Calum", "Karik", "Sam", "Jacob", "Kimberley"],
-    "everyone_else": [
+    "g_sevens": ("George", "Adam", "Calum", "Karik", "Sam", "Jacob", "Kimberley"),
+    "everyone_else": (
         "Alec",
         "Darius",
         "Thomas",
@@ -19,10 +19,10 @@ support_team = {
         "Danjiv",
         "Lora",
         "Stephen",
-    ],
+    ),
 }
 
 date_range = {
-    "start_date": "2021-03-22",
+    "start_date": "2021-03-23",
     "n_cycles": 15,
 }
