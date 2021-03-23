@@ -35,13 +35,9 @@ This repo comes with some githooks to make standard checks before you commit fil
 - run Flake8 on Python files
 - run yamllint on yaml files
 
-If you want to use these, run this command from the repo's root directory:
+### Skipping the hooks
 
-`git config core.hooksPath githooks`
-
-By default hooks live in a .git subfolder that isn't version controlled. This repo instead keeps them in a folder called `githooks`, in a bash script called `pre-commit`. The command above tells your copy of the repo to look in this folder instead of the usual location.
-
-You can add these hooks to other repos by copying from this repo's githooks folder and pasting into the other repo's .git/hooks folder.
+Once installed, the hooks run each time you commit. To skip them, add `--no-verify` to the end of your commit command. For exmaple, `git commit -m "Committing stuff" --no-verify`.
 
 ### Skipping the hooks
 
