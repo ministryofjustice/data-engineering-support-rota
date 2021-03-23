@@ -8,21 +8,19 @@ To work with this repo, first setup Python (this repo has been tested with 3.8) 
 
 WARNING :warning: Don't use this script with a calendar that is used for anything other than the support rota. The script will delete any events from the given start date on, before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
 
-- Start by updating `settings.py` where you'll find three dictionaries:
+- You'll need to update `settings.py` where there are three dictionaries containing:
 
   - Google Calendar API connection settings.
-  - Adjust the start date and set the number of cycles you want the calendar to run for.
-    - One cycle is equal to the total number of people in working days.
-  - The support team is defined as those that are and aren't G7's.
+  - The start date and the number of cycles you want the calendar to run for.
+    - One cycle is the number of days equal to the total number of people in the support team.
+  - The support team, which is defined as those that are and aren't G7's.
 
 - Log into the Google Calendar with the credentials provided in `google_calendar_login.txt`, these creds are for a dev calendar with the Google Calendar API enabled. You can use the `generate_rota.py` script to add events to any Google Calendar, but you will need to make sure API access is enabled.
 - Run `pip install -r requirements.txt` (from within your virtual environment).
 - Run `generate_rota.py`.
 
   - A browser window will open and you'll have to accept the access request.
-  - A session token gets created so you don't have to do this every time.
-  - If the rest of the script doesn't run immediately after accepting the access request, re-run it.
-  - If the session token has expired, it gets deleted when you run the script. Run it again at this point.
+    - A session token gets created so you don't have to do this every time.
 
 - See the [data engineering wiki](https://github.com/moj-analytical-services/data-engineering/wiki/Data-Engineering-Support-Rota) for more details about support.
 
@@ -38,16 +36,6 @@ This repo comes with some githooks to make standard checks before you commit fil
 ### Skipping the hooks
 
 Once installed, the hooks run each time you commit. To skip them, add `--no-verify` to the end of your commit command. For exmaple, `git commit -m "Committing stuff" --no-verify`.
-
-### Skipping the hooks
-
-Once installed, the hooks run each time you commit. To skip them, add `--no-verify` to the end of your commit command. For exmaple, `git commit -m "Committing stuff" --no-verify`.
-
-### Using Poetry
-
-These hooks aren't set up to work with Poetry. They expect you to have Black, Flake8 and yamllint installed in the same environment you're in when you commit.
-
-This might change in the future.
 
 ## Formatting and linting configs
 
