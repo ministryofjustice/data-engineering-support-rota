@@ -112,9 +112,11 @@ end_date = workday_dates[-1]
 g_sevens_long = []
 while len(g_sevens_long) < n_days:
     g_sevens_long.extend(g_sevens)
+    g_sevens.append(g_sevens.pop(0))
 everyone_else_long = []
 while len(everyone_else_long) < n_days:
     everyone_else_long.extend(everyone_else)
+    everyone_else.append(everyone_else.pop(0))
 
 support_pairs_preprocessing = []
 for i in range(n_days):
