@@ -6,14 +6,9 @@ google_calendar_api = {
     "calendar_id": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
 }
 
-date_range = {
-    "start_date": "2021-01-25",
-    "end_date": "2021-02-28",
-}
-
 support_team = {
     "g_sevens": ("George", "Adam", "Calum", "Karik", "Sam", "Jacob", "Kimberley"),
-    "the_rest": (
+    "everyone_else": (
         "Alec",
         "Darius",
         "Thomas",
@@ -23,5 +18,11 @@ support_team = {
         "David",
         "Danjiv",
         "Lora",
+        "Stephen",
     ),
+}
+
+date_range = {
+    "start_date": "2021-03-23",
+    "n_cycles": 15,
 }

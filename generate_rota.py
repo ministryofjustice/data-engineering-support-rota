@@ -1,31 +1,43 @@
 from datetime import datetime, timedelta
 import os
-import pickle
+import random
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 
 from settings import google_calendar_api, date_range, support_team
 
 
-def weekday_dates(start_date: datetime, end_date: datetime) -> list:
+def string_to_datetime(date: str) -> datetime:
+    """Takes a date as a sting of the format YYYY-MM-DD and converts it to a datetime
+    object.
+    """
+    return datetime.strptime(date, "%Y-%m-%d").date()
+
+
+def get_workday_dates(start_date: datetime, n_days: int) -> list:
     """Generates a list of dates excluding weekends between the date range provided.
 
     Parameters
     ----------
     start_date : datetime
-    end_date : datetime
+    n_days: int
 
     Returns
     -------
-    dates: list
+    list
     """
     dates = []
-    for days_delta in range((end_date - start_date).days + 1):
+    days_delta = 0
+
+    while len(dates) != n_days:
         date = start_date + timedelta(days_delta)
+        days_delta += 1
         if date.weekday() not in [5, 6]:
             dates.append(date)
+
     return dates
 
 
@@ -48,111 +60,122 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
     service
         A connection to the Google Calendar API
     """
-    cred = None
-    pickle_file = f"token_{api_name}_{api_version}.pickle"
+    creds = None
+    pickle_file = f"{api_name}_api_{api_version}_token.json"
 
     if os.path.exists(pickle_file):
-        with open(pickle_file, "rb") as token:
-            cred = pickle.load(token)
+        print("Reading token...")
+        creds = Credentials.from_authorized_user_file(pickle_file, scopes)
 
-    if not cred or not cred.valid:
-        if cred and cred.expired and cred.refresh_token:
-            cred.refresh(Request())
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            print("Refreshing token...")
+            creds.refresh(Request())
         else:
+            print("Getting token...")
             flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
-            cred = flow.run_local_server()
+            creds = flow.run_local_server(port=0)
 
-        with open(pickle_file, "wb") as token:
-            pickle.dump(cred, token)
+        print("Writing updated token to file...")
+        with open(pickle_file, "w") as token:
+            token.write(creds.to_json())
 
-        try:
-            service = build(api_name, api_version, credentials=cred)
-            print(api_name, "service created successfully")
-            return service
-        except Exception as e:
-            print(e)
-            os.remove(pickle_file)
-            return None
+    try:
+        service = build(serviceName=api_name, version=api_version, credentials=creds)
+        print(api_name.capitalize(), "API service created successfully.")
+        return service
+    except Exception as error:
+        print(error)
+        return None
 
 
-client_secret_file = google_calendar_api["client_secret_file"]
-api_name = google_calendar_api["api_name"]
-api_version = google_calendar_api["api_version"]
-scopes = google_calendar_api["scopes"]
+service = create_service(
+    google_calendar_api["client_secret_file"],
+    google_calendar_api["api_name"],
+    google_calendar_api["api_version"],
+    google_calendar_api["scopes"],
+)
 calendar_id = google_calendar_api["calendar_id"]
-service = create_service(client_secret_file, api_name, api_version, scopes)
-event = {}
+event_body = {}
 
-start_date = datetime.strptime(date_range["start_date"], "%Y-%m-%d").date()
-end_date = datetime.strptime(date_range["end_date"], "%Y-%m-%d").date()
-weekday_dates = weekday_dates(start_date, end_date)
+g_sevens = list(support_team["g_sevens"])
+random.shuffle(g_sevens)
+everyone_else = list(support_team["everyone_else"])
+random.shuffle(everyone_else)
+support_pairs = []
 
-g_sevens = support_team["g_sevens"]
-the_rest = support_team["the_rest"]
-g_seven_leads = []
-the_rest_leads = []
-g_seven_index_splits = [len(g_sevens) - 1]
-the_rest_index_splits = [(len(g_sevens) + len(the_rest)) - 1]
-g_sevens_index = []
-the_rest_index = []
-support_pairs = {}
+start_date = string_to_datetime(date_range["start_date"])
+n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
+workday_dates = get_workday_dates(start_date, n_days)
+end_date = workday_dates[-1]
 
-# two lists of pairs leading support for the day (to be combined)
-for i in range(len(weekday_dates)):
-    g_seven_leads.append((g_sevens[i % len(g_sevens)], the_rest[i % len(the_rest)]))
-    the_rest_leads.append((the_rest[i % len(the_rest)], g_sevens[i % len(g_sevens)]))
+g_sevens_long = []
+while len(g_sevens_long) < n_days:
+    g_sevens_long.extend(g_sevens)
+everyone_else_long = []
+while len(everyone_else_long) < n_days:
+    everyone_else_long.extend(everyone_else)
 
-# index values where support transistions from g_seven_leads to the_rest_leads
-quotient = len(weekday_dates) // (len(g_sevens) + len(the_rest))
-for i in range(2, quotient + 1):
-    g_seven_index_splits.append(
-        (i * (len(g_sevens) + len(the_rest)) - len(the_rest)) - 1
-    )
-    the_rest_index_splits.append((i * (len(g_sevens) + len(the_rest))) - 1)
+support_pairs_preprocessing = []
+for i in range(n_days):
+    support_pairs_preprocessing.append((g_sevens_long[i], everyone_else_long[i]))
 
-# index values for the respective "leads" lists
-i = 0
-while i <= len(weekday_dates):
-    if i not in g_seven_index_splits:
-        g_sevens_index.append(i)
-        i += 1
-    elif i not in the_rest_index_splits:
-        g_sevens_index.append(i)
-        i += len(the_rest) + 1
+index = None
+for i in range(date_range["n_cycles"]):
+    for j in range(len(g_sevens)):
+        if index is None:
+            index = 0
+        else:
+            index += 1
+        support_pairs.append(support_pairs_preprocessing[index])
 
-i = len(g_sevens) - 1
-while i <= len(weekday_dates):
-    if i not in the_rest_index_splits:
-        i += 1
-        the_rest_index.append(i)
-    elif i not in g_seven_index_splits:
-        i += len(g_sevens) + 1
-        the_rest_index.append(i)
+    for k in range(len(everyone_else)):
+        index += 1
+        support_pairs.append(
+            (
+                support_pairs_preprocessing[index][1],
+                support_pairs_preprocessing[index][0],
+            )
+        )
 
-# combine "leads" lists to give final pairs
-for i in range(len(g_sevens_index[: len(weekday_dates)])):
-    support_pairs[g_sevens_index[i]] = g_seven_leads[i]
-for i in range(len(the_rest_index[: len(weekday_dates)])):
-    support_pairs[the_rest_index[i]] = the_rest_leads[i]
-
-# delete all events from calendar
+print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
 page_token = None
 while True:
-    events = (
-        service.events().list(calendarId=calendar_id, pageToken=page_token,).execute()
+    response = (
+        service.events()
+        .list(
+            calendarId=calendar_id,
+            pageToken=page_token,
+            timeMin=date_range["start_date"] + "T00:00:00.000000Z",
+        )
+        .execute()
     )
-    for event in events["items"]:
+    events = response.get("items", [])
+
+    for event in events:
         service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
-    page_token = events.get("nextPageToken")
+    page_token = response.get("nextPageToken", None)
+
     if not page_token:
         break
 
-# populate calendar with events
-for i in range(len(weekday_dates)):
-    event["summary"] = (
+print("Writing rota to calendar...")
+for i in range(n_days):
+    event_body["summary"] = (
         f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
         "assisting"
     )
-    event["start"] = {"date": str(weekday_dates[i])}
-    event["end"] = {"date": str(weekday_dates[i])}
-    service.events().insert(calendarId=calendar_id, body=event).execute()
+    event_body["start"] = {"date": str(workday_dates[i])}
+    event_body["end"] = {"date": str(workday_dates[i])}
+    service.events().insert(calendarId=calendar_id, body=event_body).execute()
+
+everyone = list(g_sevens)
+everyone.extend(everyone_else)
+
+print(f"\nIn {n_days} working days:")
+for individual in everyone:
+    count = 0
+    for pair in support_pairs:
+        if individual in pair:
+            count += 1
+    print(f"{individual} has been scheduled to work support {count} times.")

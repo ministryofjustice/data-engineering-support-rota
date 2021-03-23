@@ -141,4 +141,4 @@ dmypy.json
 *.csv
 
 # google calendar api
-token_calendar_v3.pickle
+*_token.json
