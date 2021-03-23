@@ -61,11 +61,11 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
         A connection to the Google Calendar API
     """
     creds = None
-    pickle_file = f"{api_name}_api_{api_version}_token.json"
+    token_file = f"{api_name}_api_{api_version}_token.json"
 
-    if os.path.exists(pickle_file):
+    if os.path.exists(token_file):
         print("Reading token...")
-        creds = Credentials.from_authorized_user_file(pickle_file, scopes)
+        creds = Credentials.from_authorized_user_file(token_file, scopes)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -77,7 +77,7 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
             creds = flow.run_local_server(port=0)
 
         print("Writing updated token to file...")
-        with open(pickle_file, "w") as token:
+        with open(token_file, "w") as token:
             token.write(creds.to_json())
 
     try:
