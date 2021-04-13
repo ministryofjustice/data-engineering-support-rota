@@ -47,7 +47,7 @@ To add a GPG key for another user to the repository:
 
 6.  In this repository, create a new branch and add the key to the .git-crypt directory:
 
-    cd analytical-platform-data-engineering
+    cd data-engineering-support-rota
     git checkout -b branch-name develop
     git-crypt add-gpg-user firstname.lastname@justice.gov.uk
 
