@@ -19,17 +19,7 @@ def string_to_datetime(date: str) -> datetime:
 
 
 def get_workday_dates(start_date: datetime, n_days: int) -> list:
-    """Generates a list of dates excluding weekends between the date range provided.
-
-    Parameters
-    ----------
-    start_date : datetime
-    n_days: int
-
-    Returns
-    -------
-    list
-    """
+    """Generates a list of dates excluding weekends between the date range provided."""
     dates = []
     days_delta = 0
 
@@ -178,11 +168,9 @@ while True:
         calendar_id, page_token, date_range["start_date"]
     )
     events = response.get("items", [])
-
     for event in events:
         delete_calendar_event(calendar_id, event["id"])
     page_token = response.get("nextPageToken", None)
-
     if not page_token:
         break
 
