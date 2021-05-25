@@ -91,7 +91,7 @@ def create_service(
 
 @retry.Retry()
 def get_list_events_response(
-    calendar_id: str, page_token: str, start_date: str
+    service: Resource, calendar_id: str, page_token: str, start_date: str
 ) -> dict:
     return (
         service.events()
@@ -105,12 +105,12 @@ def get_list_events_response(
 
 
 @retry.Retry()
-def delete_calendar_event(calendar_id: str, event_id: str):
+def delete_calendar_event(service: Resource, calendar_id: str, event_id: str):
     service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
 
 
 @retry.Retry()
-def write_calendar_event(calendar_id: str, event_body: dict):
+def write_calendar_event(service: Resource, calendar_id: str, event_body: dict):
     service.events().insert(calendarId=calendar_id, body=event_body).execute()
 
 
