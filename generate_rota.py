@@ -4,7 +4,7 @@ import random
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.api_core import retry
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
@@ -32,7 +32,9 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
     return dates
 
 
-def create_service(client_secret_file, api_name: str, api_version: str, scopes: list):
+def create_service(
+    client_secret_file: str, api_name: str, api_version: str, scopes: list
+) -> Resource:
     """Creates a serive connection to the Google Calendar API.
 
     Parameters
@@ -88,7 +90,9 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
 
 
 @retry.Retry()
-def get_list_events_response(calendar_id: str, page_token: str, start_date: str):
+def get_list_events_response(
+    calendar_id: str, page_token: str, start_date: str
+) -> dict:
     return (
         service.events()
         .list(
