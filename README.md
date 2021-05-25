@@ -24,31 +24,6 @@ WARNING :warning: Don't use this script with a calendar that is used for anythin
 
 - See the [data engineering wiki](https://github.com/moj-analytical-services/data-engineering/wiki/Data-Engineering-Support-Rota) for more details about support.
 
-## Githooks
-
-This repo comes with some githooks to make standard checks before you commit files to Github. The checks are:
-
-- if you're using git-crypt, run `git-crypt status` and check for unencrypted file warnings
-- run Black on Python files
-- run Flake8 on Python files
-- run yamllint on yaml files
-
-### Skipping the hooks
-
-Once installed, the hooks run each time you commit. To skip them, add `--no-verify` to the end of your commit command. For exmaple, `git commit -m "Committing stuff" --no-verify`.
-
-## Formatting and linting configs
-
-Config changes for flake8 go in .flake8. Our standard settings include:
-
-- max line length to 88 to match team's preference (and Black default)
-- ignore rule E203 which doesn't quite match PEP8 on spacing around colons (and conflicts with Black)
-- ignore some folders like venv and .github
-
-Config changes for yamllint should go in `.yamllint`.
-
-We use the standard Black config, so this repo doesn't include a config. To make config changes, add them to a file called `pyproject.toml`, under a line saying `[tool.black]`.
-
 ## Licence
 
 [MIT Licence](LICENCE.md)
