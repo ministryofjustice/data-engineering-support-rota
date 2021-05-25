@@ -3,6 +3,7 @@ import os
 import random
 
 from google_auth_oauthlib.flow import InstalledAppFlow
+from google.api_core import retry
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -69,8 +70,15 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            print("Refreshing token...")
-            creds.refresh(Request())
+            try:
+                print("Refreshing token...")
+                creds.refresh(Request())
+            except Exception:
+                print("Couldn't refresh token, trying to get a new one...")
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    client_secret_file, scopes
+                )
+                creds = flow.run_local_server(port=0)
         else:
             print("Getting token...")
             flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
@@ -87,6 +95,29 @@ def create_service(client_secret_file, api_name: str, api_version: str, scopes: 
     except Exception as error:
         print(error)
         return None
+
+
+@retry.Retry()
+def get_list_events_response(calendar_id: str, page_token: str, start_date: str):
+    return (
+        service.events()
+        .list(
+            calendarId=calendar_id,
+            pageToken=page_token,
+            timeMin=start_date + "T00:00:00.000000Z",
+        )
+        .execute()
+    )
+
+
+@retry.Retry()
+def delete_calendar_event(calendar_id: str, event_id: str):
+    service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+
+
+@retry.Retry()
+def write_calendar_event(calendar_id: str, event_body: dict):
+    service.events().insert(calendarId=calendar_id, body=event_body).execute()
 
 
 service = create_service(
@@ -143,19 +174,13 @@ for i in range(date_range["n_cycles"]):
 print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
 page_token = None
 while True:
-    response = (
-        service.events()
-        .list(
-            calendarId=calendar_id,
-            pageToken=page_token,
-            timeMin=date_range["start_date"] + "T00:00:00.000000Z",
-        )
-        .execute()
+    response = get_list_events_response(
+        calendar_id, page_token, date_range["start_date"]
     )
     events = response.get("items", [])
 
     for event in events:
-        service.events().delete(calendarId=calendar_id, eventId=event["id"]).execute()
+        delete_calendar_event(calendar_id, event["id"])
     page_token = response.get("nextPageToken", None)
 
     if not page_token:
@@ -169,7 +194,7 @@ for i in range(n_days):
     )
     event_body["start"] = {"date": str(workday_dates[i])}
     event_body["end"] = {"date": str(workday_dates[i])}
-    service.events().insert(calendarId=calendar_id, body=event_body).execute()
+    write_calendar_event(calendar_id, event_body)
 
 everyone = list(g_sevens)
 everyone.extend(everyone_else)
