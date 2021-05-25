@@ -169,11 +169,11 @@ print(f"Deleting all calendar events from {date_range['start_date']} onwards..."
 page_token = None
 while True:
     response = get_list_events_response(
-        calendar_id, page_token, date_range["start_date"]
+        service, calendar_id, page_token, date_range["start_date"]
     )
     events = response.get("items", [])
     for event in events:
-        delete_calendar_event(calendar_id, event["id"])
+        delete_calendar_event(service, calendar_id, event["id"])
     page_token = response.get("nextPageToken", None)
     if not page_token:
         break
@@ -186,7 +186,7 @@ for i in range(n_days):
     )
     event_body["start"] = {"date": str(workday_dates[i])}
     event_body["end"] = {"date": str(workday_dates[i])}
-    write_calendar_event(calendar_id, event_body)
+    write_calendar_event(service, calendar_id, event_body)
 
 everyone = list(g_sevens)
 everyone.extend(everyone_else)
