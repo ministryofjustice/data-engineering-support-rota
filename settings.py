@@ -10,7 +10,7 @@ google_calendar_api = {
 }
 
 support_team = {
-    "start_cycle_with": "everyone_else",
+    "start_cycle_with": "g_sevens",
     "g_sevens": ["George", "Calum", "Karik", "Jacob", "Kimberley"],
     "everyone_else": [
         "Thomas",
