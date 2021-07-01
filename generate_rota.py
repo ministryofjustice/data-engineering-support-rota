@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import random
+from typing import Union
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.api_core import retry
@@ -9,6 +10,9 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
 from settings import google_calendar_api, date_range, support_team
+
+if support_team["start_cycle_with"] not in ["g_sevens", "everyone_else"]:
+    raise ValueError(f"{support_team['start_cycle_with']} is an invalid group name.")
 
 
 def string_to_datetime(date: str) -> datetime:
@@ -30,6 +34,43 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
             dates.append(date)
 
     return dates
+
+
+def generate_support_pairs(group_one: list, group_two: list, n_days: int) -> list:
+    """Generates a list of 2-tuples containing a leading and assisting pair to work
+    support.
+    """
+    group_one_long = []
+    while len(group_one_long) < n_days:
+        group_one_long.extend(group_one)
+        # group_one.append(group_one.pop(0))
+
+    group_two_long = []
+    while len(group_two_long) < n_days:
+        group_two_long.extend(group_two)
+        # group_two.append(group_two.pop(0))
+
+    support_pairs_preprocessing = []
+    support_pairs = []
+
+    for i in range(n_days):
+        support_pairs_preprocessing.append((group_one_long[i], group_two_long[i]))
+
+    index = 0
+    for i in range(date_range["n_cycles"]):
+        for j in range(len(group_one)):
+            support_pairs.append(support_pairs_preprocessing[index])
+            index += 1
+        for k in range(len(group_two)):
+            support_pairs.append(
+                (
+                    support_pairs_preprocessing[index][1],
+                    support_pairs_preprocessing[index][0],
+                )
+            )
+            index += 1
+
+    return support_pairs
 
 
 def create_service(
@@ -80,18 +121,15 @@ def create_service(
         with open(token_file, "w") as token:
             token.write(creds.to_json())
 
-    try:
-        service = build(serviceName=api_name, version=api_version, credentials=creds)
-        print(api_name.capitalize(), "API service created successfully.")
-        return service
-    except Exception as error:
-        print(error)
-        return None
+    service = build(serviceName=api_name, version=api_version, credentials=creds)
+    print(api_name.capitalize(), "API service created successfully.")
+
+    return service
 
 
 @retry.Retry()
 def get_list_events_response(
-    service: Resource, calendar_id: str, page_token: str, start_date: str
+    service: Resource, calendar_id: str, page_token: Union[str, None], start_date: str
 ) -> dict:
     return (
         service.events()
@@ -120,50 +158,27 @@ service = create_service(
     google_calendar_api["api_version"],
     google_calendar_api["scopes"],
 )
-calendar_id = google_calendar_api["calendar_id"]
-event_body = {}
+calendar_id = google_calendar_api["calendar_id"]["prod"]
 
-g_sevens = list(support_team["g_sevens"])
+g_sevens = support_team["g_sevens"]
 random.shuffle(g_sevens)
-everyone_else = list(support_team["everyone_else"])
+everyone_else = support_team["everyone_else"]
 random.shuffle(everyone_else)
-support_pairs = []
 
 start_date = string_to_datetime(date_range["start_date"])
 n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
 workday_dates = get_workday_dates(start_date, n_days)
 end_date = workday_dates[-1]
 
-g_sevens_long = []
-while len(g_sevens_long) < n_days:
-    g_sevens_long.extend(g_sevens)
-    g_sevens.append(g_sevens.pop(0))
-everyone_else_long = []
-while len(everyone_else_long) < n_days:
-    everyone_else_long.extend(everyone_else)
-    everyone_else.append(everyone_else.pop(0))
+if support_team["start_cycle_with"] == "g_sevens":
+    support_pairs = generate_support_pairs(
+        group_one=g_sevens, group_two=everyone_else, n_days=n_days
+    )
+else:
+    support_pairs = generate_support_pairs(
+        group_one=everyone_else, group_two=g_sevens, n_days=n_days
+    )
 
-support_pairs_preprocessing = []
-for i in range(n_days):
-    support_pairs_preprocessing.append((g_sevens_long[i], everyone_else_long[i]))
-
-index = None
-for i in range(date_range["n_cycles"]):
-    for j in range(len(g_sevens)):
-        if index is None:
-            index = 0
-        else:
-            index += 1
-        support_pairs.append(support_pairs_preprocessing[index])
-
-    for k in range(len(everyone_else)):
-        index += 1
-        support_pairs.append(
-            (
-                support_pairs_preprocessing[index][1],
-                support_pairs_preprocessing[index][0],
-            )
-        )
 
 print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
 page_token = None
@@ -178,6 +193,7 @@ while True:
     if not page_token:
         break
 
+event_body = {}
 print("Writing rota to calendar...")
 for i in range(n_days):
     event_body["summary"] = (
