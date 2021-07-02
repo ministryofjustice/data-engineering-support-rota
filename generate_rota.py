@@ -73,7 +73,25 @@ def repeat_and_shuffle_without_consecutive_elements(
     return output
 
 
+def generate_lead_list(group: list, n_cycles: int) -> list:
+    """A helper function that repeats the list group for n_cycles and shuffles each
+    repitition.
+    """
+    random.shuffle(group)
+    repeat_and_shuffle = []
+    for cycle in range(n_cycles):
+        repeat_and_shuffle.extend(group)
+
+    return repeat_and_shuffle
+
+
 def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
+    """A helper function that takes group_a and repeats it the number of times required
+    such that it's length is at least as long as the length of group_b * n_cycles. Each
+    repitition is shuffled whilst ensuring no two consequtive elements are the same.
+    Finally the repeated and shuffled group_a list is sliced to the exact length of
+    group_b * n_cycles.
+    """
     group_a_length = len(group_a)
     group_b_length = len(group_b)
 
@@ -87,15 +105,6 @@ def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
         return repeat_and_shuffle_without_consecutive_elements(
             group_a, round((group_b_length * n_cycles) // group_a_length) + 1
         )[: group_b_length * n_cycles]
-
-
-def generate_lead_list(group: list, n_cycles: int) -> list:
-    random.shuffle(group)
-    repeat_and_shuffle = []
-    for cycle in range(n_cycles):
-        repeat_and_shuffle.extend(group)
-
-    return repeat_and_shuffle
 
 
 def generate_support_pairs(group_1: list, group_2: list, n_cycles: int) -> list:
@@ -212,7 +221,7 @@ service = create_service(
     google_calendar_api["api_version"],
     google_calendar_api["scopes"],
 )
-calendar_id = google_calendar_api["calendar_id"]["dev"]
+calendar_id = google_calendar_api["calendar_ids"][google_calendar_api["calendar"]]
 
 g_sevens = support_team["g_sevens"]
 everyone_else = support_team["everyone_else"]
