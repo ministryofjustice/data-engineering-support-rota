@@ -6,7 +6,7 @@ This repo contains a script that populates a Google Calendar with a support rota
 
 To work with this repo, first setup Python (this repo has been tested with 3.8) and git-crypt (the use of a virtual envionment of some sort is also recommended). You'll need to add your GPG key to the repo to decrypt it, details about how to do so can be found [here](.git-crypt/README.md).
 
-WARNING :warning: Don't use this script with a calendar that is used for anything other than the support rota. The script will delete any events from the specified start date, before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
+WARNING :warning: Don't use this script with a calendar that is used for anything other than the support rota. The script will delete any events from the specified start date onwards, before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
 
 - You'll need to update `settings.py` where there are three dictionaries containing:
 
