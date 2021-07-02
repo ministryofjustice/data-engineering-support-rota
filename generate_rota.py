@@ -36,39 +36,93 @@ def get_workday_dates(start_date: datetime, n_days: int) -> list:
     return dates
 
 
-def generate_support_pairs(group_one: list, group_two: list, n_days: int) -> list:
+def repeat_and_shuffle_without_consecutive_elements(
+    input_list: list, n_repeats: int
+) -> list:
+    """Repeats a list the specified number of times and shuffles it's elements whilst
+    ensuring no two consecutive values are equal.
+    Parameters
+    ----------
+    input_list : list
+        The list you want to repeat and shuffle.
+    n_repeats : int
+        The number of times you want to repeat the input list.
+    Returns
+    -------
+    list
+        A list of length n_repeats * len(input_list), shuffled with no two consecutive
+        values being equal.
+    Raises
+    ------
+    ValueError
+        If the input list contains duplicate values.
+    """
+    if len(set(input_list)) != len(input_list):
+        raise ValueError("Remove the duplicate value in this list: ", input_list)
+
+    output = list(input_list)
+    random.shuffle(output)
+
+    for n in range(n_repeats - 1):
+        shuffle_list = [element for element in input_list if element not in output[-1]]
+        random.shuffle(shuffle_list)
+        shuffle_list.append(output[-1])
+        shuffle_list[1:] = random.sample(shuffle_list[1:], len(shuffle_list) - 1)
+        output.extend(shuffle_list)
+
+    return output
+
+
+def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
+    group_a_length = len(group_a)
+    group_b_length = len(group_b)
+
+    if group_a_length == group_b_length:
+        return repeat_and_shuffle_without_consecutive_elements(group_a, n_cycles)
+    elif group_a_length > group_b_length:
+        return repeat_and_shuffle_without_consecutive_elements(
+            group_a, ((group_b_length * n_cycles) // group_a_length) + 1
+        )[: group_b_length * n_cycles]
+    else:
+        return repeat_and_shuffle_without_consecutive_elements(
+            group_a, round((group_b_length * n_cycles) // group_a_length) + 1
+        )[: group_b_length * n_cycles]
+
+
+def generate_lead_list(group: list, n_cycles: int) -> list:
+    random.shuffle(group)
+    repeat_and_shuffle = []
+    for cycle in range(n_cycles):
+        repeat_and_shuffle.extend(group)
+
+    return repeat_and_shuffle
+
+
+def generate_support_pairs(group_1: list, group_2: list, n_cycles: int) -> list:
     """Generates a list of 2-tuples containing a leading and assisting pair to work
     support.
     """
-    group_one_long = []
-    while len(group_one_long) < n_days:
-        group_one_long.extend(group_one)
-        # group_one.append(group_one.pop(0))
+    group_1_lead = generate_lead_list(group_1, n_cycles)
+    group_1_assist = generate_assist_list(group_1, group_2, n_cycles)
 
-    group_two_long = []
-    while len(group_two_long) < n_days:
-        group_two_long.extend(group_two)
-        # group_two.append(group_two.pop(0))
+    group_2_lead = generate_lead_list(group_2, n_cycles)
+    group_2_assist = generate_assist_list(group_2, group_1, n_cycles)
 
-    support_pairs_preprocessing = []
     support_pairs = []
-
-    for i in range(n_days):
-        support_pairs_preprocessing.append((group_one_long[i], group_two_long[i]))
-
-    index = 0
-    for i in range(date_range["n_cycles"]):
-        for j in range(len(group_one)):
-            support_pairs.append(support_pairs_preprocessing[index])
-            index += 1
-        for k in range(len(group_two)):
+    group_1_lead_index = 0
+    group_2_lead_index = 0
+    for i in range(n_cycles):
+        for j in range(len(group_1)):
             support_pairs.append(
-                (
-                    support_pairs_preprocessing[index][1],
-                    support_pairs_preprocessing[index][0],
-                )
+                (group_1_lead[group_1_lead_index], group_2_assist[group_1_lead_index])
             )
-            index += 1
+            group_1_lead_index += 1
+
+        for k in range(len(group_2)):
+            support_pairs.append(
+                (group_2_lead[group_2_lead_index], group_1_assist[group_2_lead_index])
+            )
+            group_2_lead_index += 1
 
     return support_pairs
 
@@ -158,25 +212,24 @@ service = create_service(
     google_calendar_api["api_version"],
     google_calendar_api["scopes"],
 )
-calendar_id = google_calendar_api["calendar_id"]["prod"]
+calendar_id = google_calendar_api["calendar_id"]["dev"]
 
 g_sevens = support_team["g_sevens"]
-random.shuffle(g_sevens)
 everyone_else = support_team["everyone_else"]
-random.shuffle(everyone_else)
 
 start_date = string_to_datetime(date_range["start_date"])
-n_days = date_range["n_cycles"] * (len(g_sevens) + len(everyone_else))
+n_cycles = date_range["n_cycles"]
+n_days = n_cycles * (len(g_sevens) + len(everyone_else))
 workday_dates = get_workday_dates(start_date, n_days)
 end_date = workday_dates[-1]
 
 if support_team["start_cycle_with"] == "g_sevens":
     support_pairs = generate_support_pairs(
-        group_one=g_sevens, group_two=everyone_else, n_days=n_days
+        group_1=g_sevens, group_2=everyone_else, n_cycles=n_cycles
     )
 else:
     support_pairs = generate_support_pairs(
-        group_one=everyone_else, group_two=g_sevens, n_days=n_days
+        group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
     )
 
 
@@ -209,8 +262,14 @@ everyone.extend(everyone_else)
 
 print(f"\nIn {n_days} working days:")
 for individual in everyone:
-    count = 0
+    lead_count = 0
+    assist_count = 0
     for pair in support_pairs:
-        if individual in pair:
-            count += 1
-    print(f"{individual} has been scheduled to work support {count} times.")
+        if individual == pair[0]:
+            lead_count += 1
+        if individual == pair[1]:
+            assist_count += 1
+    print(
+        f"{individual} has been scheduled to lead {lead_count} times and assist "
+        f"{assist_count} times."
+    )
