@@ -14,7 +14,7 @@ WARNING :warning: Don't use this script with a calendar that is used for anythin
     - There are two default calendar IDs, `dev` and `prod`, update the `calendar` value to one of these.
   - The start date and the number of cycles you want the calendar to run for.
     - It's not compulsory but if updating an existing calendar, you should set the start date to begin when the cycle switches from G7s to everyone else, or vice versa.
-    - One cycle is the number of days equal to the total number of people in the support team.
+    - One cycle is the number of days equal to the total number of individuals in the support team.
   - The support team is made up of two groups, which is defined as those that are G7s and aren't.
     - Update the team if needed and select which group to start a cycle with.
 
