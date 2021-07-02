@@ -3,14 +3,15 @@ google_calendar_api = {
     "api_name": "calendar",
     "api_version": "v3",
     "scopes": ["https://www.googleapis.com/auth/calendar"],
-    "calendar_id": {
+    "calendar_ids": {
         "dev": "qk7dfadvnmao3lgvb207pqd1bk@group.calendar.google.com",
         "prod": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
     },
+    "calendar": "dev",
 }
 
 support_team = {
-    "start_cycle_with": "g_sevens",
+    "start_cycle_with": "everyone_else",
     "g_sevens": [
         "George",
         "Calum",
@@ -32,6 +33,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2021-07-14",
+    "start_date": "2021-08-30",
     "n_cycles": 10,
 }
