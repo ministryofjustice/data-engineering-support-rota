@@ -79,6 +79,7 @@ def generate_lead_list(group: list, n_cycles: int) -> list:
     """
     random.shuffle(group)
     repeat_and_shuffle = []
+
     for cycle in range(n_cycles):
         repeat_and_shuffle.extend(group)
 
@@ -97,10 +98,12 @@ def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
 
     if group_a_length == group_b_length:
         return repeat_and_shuffle_without_consecutive_elements(group_a, n_cycles)
+
     elif group_a_length > group_b_length:
         return repeat_and_shuffle_without_consecutive_elements(
             group_a, ((group_b_length * n_cycles) // group_a_length) + 1
         )[: group_b_length * n_cycles]
+
     else:
         return repeat_and_shuffle_without_consecutive_elements(
             group_a, round((group_b_length * n_cycles) // group_a_length) + 1
@@ -120,6 +123,7 @@ def generate_support_pairs(group_1: list, group_2: list, n_cycles: int) -> list:
     support_pairs = []
     group_1_lead_index = 0
     group_2_lead_index = 0
+
     for i in range(n_cycles):
         for j in range(len(group_1)):
             support_pairs.append(
@@ -249,9 +253,11 @@ while True:
         service, calendar_id, page_token, date_range["start_date"]
     )
     events = response.get("items", [])
+
     for event in events:
         delete_calendar_event(service, calendar_id, event["id"])
     page_token = response.get("nextPageToken", None)
+
     if not page_token:
         break
 
@@ -264,6 +270,7 @@ for i in range(n_days):
     )
     event_body["start"] = {"date": str(workday_dates[i])}
     event_body["end"] = {"date": str(workday_dates[i])}
+
     write_calendar_event(service, calendar_id, event_body)
 
 everyone = list(g_sevens)
@@ -273,11 +280,13 @@ print(f"\nIn {n_days} working days:")
 for individual in everyone:
     lead_count = 0
     assist_count = 0
+
     for pair in support_pairs:
         if individual == pair[0]:
             lead_count += 1
         if individual == pair[1]:
             assist_count += 1
+
     print(
         f"{individual} has been scheduled to lead {lead_count} times and assist "
         f"{assist_count} times."
