@@ -73,38 +73,56 @@ def repeat_and_shuffle_without_consecutive_elements(
     return output
 
 
-def match_group_length(group_a, group_b):
+def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
     group_a_length = len(group_a)
     group_b_length = len(group_b)
 
     if group_a_length == group_b_length:
-        random.shuffle(group_a)
-        return group_a
+        return repeat_and_shuffle_without_consecutive_elements(group_a, n_cycles)
     elif group_a_length > group_b_length:
-        return random.sample(group_a, group_b_length)
+        return repeat_and_shuffle_without_consecutive_elements(
+            group_a, ((group_b_length * n_cycles) // group_a_length) + 1
+        )[: group_b_length * n_cycles]
     else:
         return repeat_and_shuffle_without_consecutive_elements(
-            group_a, group_b_length // group_a_length + 1
-        )[:group_b_length]
+            group_a, round((group_b_length * n_cycles) // group_a_length) + 1
+        )[: group_b_length * n_cycles]
+
+
+def generate_lead_list(group: list, n_cycles: int) -> list:
+    random.shuffle(group)
+    repeat_and_shuffle = []
+    for cycle in range(n_cycles):
+        repeat_and_shuffle.extend(group)
+
+    return repeat_and_shuffle
 
 
 def generate_support_pairs(group_1: list, group_2: list, n_cycles: int) -> list:
     """Generates a list of 2-tuples containing a leading and assisting pair to work
     support.
     """
-    support_pairs = []
-    for i in range(n_cycles):
-        random.shuffle(group_1)
-        group_2_sample = match_group_length(group_2, group_1)
-        group_1_lead_pairs = [
-            (lead, assist) for lead, assist in zip(group_1, group_2_sample)
-        ]
-        support_pairs.extend(group_1_lead_pairs)
+    group_1_lead = generate_lead_list(group_1, n_cycles)
+    group_1_assist = generate_assist_list(group_1, group_2, n_cycles)
 
-        random.shuffle(group_2)
-        group_1_sample = match_group_length(group_1, group_2)
-        group_2_lead = [(lead, assist) for lead, assist in zip(group_2, group_1_sample)]
-        support_pairs.extend(group_2_lead)
+    group_2_lead = generate_lead_list(group_2, n_cycles)
+    group_2_assist = generate_assist_list(group_2, group_1, n_cycles)
+
+    support_pairs = []
+    group_1_lead_index = 0
+    group_2_lead_index = 0
+    for i in range(n_cycles):
+        for j in range(len(group_1)):
+            support_pairs.append(
+                (group_1_lead[group_1_lead_index], group_2_assist[group_1_lead_index])
+            )
+            group_1_lead_index += 1
+
+        for k in range(len(group_2)):
+            support_pairs.append(
+                (group_2_lead[group_2_lead_index], group_1_assist[group_2_lead_index])
+            )
+            group_2_lead_index += 1
 
     return support_pairs
 
@@ -188,45 +206,45 @@ def write_calendar_event(service: Resource, calendar_id: str, event_body: dict):
     service.events().insert(calendarId=calendar_id, body=event_body).execute()
 
 
-# service = create_service(
-#     google_calendar_api["client_secret_file"],
-#     google_calendar_api["api_name"],
-#     google_calendar_api["api_version"],
-#     google_calendar_api["scopes"],
-# )
+service = create_service(
+    google_calendar_api["client_secret_file"],
+    google_calendar_api["api_name"],
+    google_calendar_api["api_version"],
+    google_calendar_api["scopes"],
+)
 calendar_id = google_calendar_api["calendar_id"]["dev"]
 
 g_sevens = support_team["g_sevens"]
 everyone_else = support_team["everyone_else"]
 
 start_date = string_to_datetime(date_range["start_date"])
-n_cyles = date_range["n_cycles"]
-n_days = n_cyles * (len(g_sevens) + len(everyone_else))
+n_cycles = date_range["n_cycles"]
+n_days = n_cycles * (len(g_sevens) + len(everyone_else))
 workday_dates = get_workday_dates(start_date, n_days)
 end_date = workday_dates[-1]
 
 if support_team["start_cycle_with"] == "g_sevens":
     support_pairs = generate_support_pairs(
-        group_1=g_sevens, group_2=everyone_else, n_cycles=n_cyles
+        group_1=g_sevens, group_2=everyone_else, n_cycles=n_cycles
     )
 else:
     support_pairs = generate_support_pairs(
-        group_1=everyone_else, group_2=g_sevens, n_cycles=n_cyles
+        group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
     )
 
 
 print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
-# page_token = None
-# while True:
-#     response = get_list_events_response(
-#         service, calendar_id, page_token, date_range["start_date"]
-#     )
-#     events = response.get("items", [])
-#     for event in events:
-#         delete_calendar_event(service, calendar_id, event["id"])
-#     page_token = response.get("nextPageToken", None)
-#     if not page_token:
-#         break
+page_token = None
+while True:
+    response = get_list_events_response(
+        service, calendar_id, page_token, date_range["start_date"]
+    )
+    events = response.get("items", [])
+    for event in events:
+        delete_calendar_event(service, calendar_id, event["id"])
+    page_token = response.get("nextPageToken", None)
+    if not page_token:
+        break
 
 event_body = {}
 print("Writing rota to calendar...")
@@ -237,7 +255,7 @@ for i in range(n_days):
     )
     event_body["start"] = {"date": str(workday_dates[i])}
     event_body["end"] = {"date": str(workday_dates[i])}
-    # write_calendar_event(service, calendar_id, event_body)
+    write_calendar_event(service, calendar_id, event_body)
 
 everyone = list(g_sevens)
 everyone.extend(everyone_else)
@@ -252,6 +270,6 @@ for individual in everyone:
         if individual == pair[1]:
             assist_count += 1
     print(
-        f"{individual} has been scheduled to lead support {lead_count} times and "
-        f"assist support {assist_count}."
+        f"{individual} has been scheduled to lead {lead_count} times and assist "
+        f"{assist_count} times."
     )

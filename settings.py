@@ -11,7 +11,13 @@ google_calendar_api = {
 
 support_team = {
     "start_cycle_with": "g_sevens",
-    "g_sevens": ["George", "Calum", "Karik", "Jacob", "Kimberley"],
+    "g_sevens": [
+        "George",
+        "Calum",
+        "Karik",
+        "Jacob",
+        "Kimberley",
+    ],
     "everyone_else": [
         "Thomas",
         "Jake",
@@ -26,6 +32,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2021-07-01",
+    "start_date": "2021-07-14",
     "n_cycles": 10,
 }
