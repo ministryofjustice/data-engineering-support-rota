@@ -106,7 +106,7 @@ def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
 
     else:
         return repeat_and_shuffle_without_consecutive_elements(
-            group_a, round((group_b_length * n_cycles) // group_a_length) + 1
+            group_a, ((group_b_length * n_cycles) // group_a_length) + 1
         )[: group_b_length * n_cycles]
 
 
