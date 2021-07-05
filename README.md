@@ -18,9 +18,9 @@ WARNING :warning: Don't use this script with a calendar that is used for anythin
   - The support team is made up of two groups, which is defined as those that are G7s and aren't.
     - Update the team if needed and select which group to start a cycle with.
 
-- Log into the Google Calendar with the credentials provided in `google_calendar_login.txt`, these creds are for a dev calendar with the Google Calendar API enabled. You can use the `generate_rota.py` script to add events to any Google Calendar, but you will need to make sure API access is enabled and you've added the appropriate calendar ID to `settings.py`.
+- Log into the Google Calendar with the credentials provided in `docs/google_calendar_login.txt`, these creds are for a dev calendar with the Google Calendar API enabled. You can use the `generate_rota.py` script to add events to any Google Calendar, but you will need to make sure API access is enabled and you've added the appropriate calendar ID to `settings.py`.
 - Run `pip install -r requirements.txt` (from within your virtual environment).
-- Run `generate_rota.py`.
+- Run `generate_rota.py` from within the `data_engineering_support_rota/` package directory.
 
   - A browser window will open and you'll have to accept the access request.
     - A session token gets created so you don't have to do this every time.
