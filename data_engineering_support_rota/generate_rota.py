@@ -20,7 +20,9 @@ def string_to_datetime(date: str) -> datetime:
 
 
 def get_workday_dates(start_date: datetime, n_days: int) -> list:
-    """Generates a list of dates excluding weekends between the date range provided."""
+    """Generates a list of dates excluding weekends that is n_days long starting at
+    start_date.
+    """
     dates = []
     days_delta = 0
 
