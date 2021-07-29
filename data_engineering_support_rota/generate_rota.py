@@ -11,9 +11,6 @@ from google.oauth2.credentials import Credentials
 
 from settings import google_calendar_api, date_range, support_team
 
-if support_team["start_cycle_with"] not in ["g_sevens", "everyone_else"]:
-    raise ValueError(f"{support_team['start_cycle_with']} is an invalid group name.")
-
 
 def string_to_datetime(date: str) -> datetime:
     """Takes a date as a sting of the format YYYY-MM-DD and converts it to a datetime
@@ -80,7 +77,7 @@ def generate_lead_list(group: list, n_cycles: int) -> list:
     random.shuffle(group)
     repeat_and_shuffle = []
 
-    for cycle in range(n_cycles):
+    for n in range(n_cycles):
         repeat_and_shuffle.extend(group)
 
     return repeat_and_shuffle
@@ -219,75 +216,82 @@ def write_calendar_event(service: Resource, calendar_id: str, event_body: dict):
     service.events().insert(calendarId=calendar_id, body=event_body).execute()
 
 
-service = create_service(
-    google_calendar_api["client_secret_file"],
-    google_calendar_api["api_name"],
-    google_calendar_api["api_version"],
-    google_calendar_api["scopes"],
-)
-calendar_id = google_calendar_api["calendar_ids"][google_calendar_api["calendar"]]
-
-g_sevens = support_team["g_sevens"]
-everyone_else = support_team["everyone_else"]
-
-start_date = string_to_datetime(date_range["start_date"])
-n_cycles = date_range["n_cycles"]
-n_days = n_cycles * (len(g_sevens) + len(everyone_else))
-workday_dates = get_workday_dates(start_date, n_days)
-end_date = workday_dates[-1]
-
-if support_team["start_cycle_with"] == "g_sevens":
-    support_pairs = generate_support_pairs(
-        group_1=g_sevens, group_2=everyone_else, n_cycles=n_cycles
+def main():
+    service = create_service(
+        google_calendar_api["client_secret_file"],
+        google_calendar_api["api_name"],
+        google_calendar_api["api_version"],
+        google_calendar_api["scopes"],
     )
-else:
-    support_pairs = generate_support_pairs(
-        group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
-    )
+    calendar_id = google_calendar_api["calendar_ids"][google_calendar_api["calendar"]]
+
+    g_sevens = support_team["g_sevens"]
+    everyone_else = support_team["everyone_else"]
+
+    start_date = string_to_datetime(date_range["start_date"])
+    n_cycles = date_range["n_cycles"]
+    n_days = n_cycles * (len(g_sevens) + len(everyone_else))
+    workday_dates = get_workday_dates(start_date, n_days)
+
+    if support_team["start_cycle_with"] == "g_sevens":
+        support_pairs = generate_support_pairs(
+            group_1=g_sevens, group_2=everyone_else, n_cycles=n_cycles
+        )
+    else:
+        support_pairs = generate_support_pairs(
+            group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
+        )
+
+    print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
+    page_token = None
+    while True:
+        response = get_list_events_response(
+            service, calendar_id, page_token, date_range["start_date"]
+        )
+        events = response.get("items", [])
+
+        for event in events:
+            delete_calendar_event(service, calendar_id, event["id"])
+        page_token = response.get("nextPageToken", None)
+
+        if not page_token:
+            break
+
+    event_body = {}
+    print("Writing rota to calendar...")
+    for i in range(n_days):
+        event_body["summary"] = (
+            f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
+            "assisting"
+        )
+        event_body["start"] = {"date": str(workday_dates[i])}
+        event_body["end"] = {"date": str(workday_dates[i])}
+
+        write_calendar_event(service, calendar_id, event_body)
+
+    everyone = list(g_sevens)
+    everyone.extend(everyone_else)
+
+    print(f"\nIn {n_days} working days:")
+    for individual in everyone:
+        lead_count = 0
+        assist_count = 0
+
+        for pair in support_pairs:
+            if individual == pair[0]:
+                lead_count += 1
+            if individual == pair[1]:
+                assist_count += 1
+
+        print(
+            f"{individual} has been scheduled to lead {lead_count} times and assist "
+            f"{assist_count} times."
+        )
 
 
-print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
-page_token = None
-while True:
-    response = get_list_events_response(
-        service, calendar_id, page_token, date_range["start_date"]
-    )
-    events = response.get("items", [])
-
-    for event in events:
-        delete_calendar_event(service, calendar_id, event["id"])
-    page_token = response.get("nextPageToken", None)
-
-    if not page_token:
-        break
-
-event_body = {}
-print("Writing rota to calendar...")
-for i in range(n_days):
-    event_body["summary"] = (
-        f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
-        "assisting"
-    )
-    event_body["start"] = {"date": str(workday_dates[i])}
-    event_body["end"] = {"date": str(workday_dates[i])}
-
-    write_calendar_event(service, calendar_id, event_body)
-
-everyone = list(g_sevens)
-everyone.extend(everyone_else)
-
-print(f"\nIn {n_days} working days:")
-for individual in everyone:
-    lead_count = 0
-    assist_count = 0
-
-    for pair in support_pairs:
-        if individual == pair[0]:
-            lead_count += 1
-        if individual == pair[1]:
-            assist_count += 1
-
-    print(
-        f"{individual} has been scheduled to lead {lead_count} times and assist "
-        f"{assist_count} times."
-    )
+if __name__ == "__main__":
+    if support_team["start_cycle_with"] not in ["g_sevens", "everyone_else"]:
+        raise ValueError(
+            f"{support_team['start_cycle_with']} is an invalid group name."
+        )
+    main()
