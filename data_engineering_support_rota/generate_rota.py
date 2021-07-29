@@ -265,7 +265,7 @@ def main():
             "assisting"
         )
         event_body["start"] = {"date": str(workday_dates[i])}
-        event_body["end"] = {"date": str(workday_dates[i])}
+        event_body["end"] = {"date": str(workday_dates[i] + timedelta(1))}
 
         write_calendar_event(service, calendar_id, event_body)
 
