@@ -136,16 +136,20 @@ def get_report(
             ("grand_total", lead_count + assist_count),
         )
 
-    dates_report = {
+    config_report = {
         "date_range": {
             "start": str(workday_dates[0]),
             "end": str(workday_dates[-1]),
             "n_cyles": n_cyles,
             "total_days": n_days,
-        }
+        },
+        "calendar": {
+            "env": google_calendar_api["calendar"],
+            "id": google_calendar_api["calendar_ids"][google_calendar_api["calendar"]],
+        },
     }
 
-    return days_worked_report, dates_report
+    return days_worked_report, config_report
 
 
 def main():
@@ -154,13 +158,13 @@ def main():
             f"{support_team['start_cycle_with']} is an invalid group name."
         )
 
-    # service = create_service(
-    #     google_calendar_api["client_secret_file"],
-    #     google_calendar_api["api_name"],
-    #     google_calendar_api["api_version"],
-    #     google_calendar_api["scopes"],
-    # )
-    # calendar_id = google_calendar_api["calendar_ids"][google_calendar_api["calendar"]]
+    service = create_service(
+        google_calendar_api["client_secret_file"],
+        google_calendar_api["api_name"],
+        google_calendar_api["api_version"],
+        google_calendar_api["scopes"],
+    )
+    calendar_id = google_calendar_api["calendar_ids"][google_calendar_api["calendar"]]
 
     g_sevens = support_team["g_sevens"]
     everyone_else = support_team["everyone_else"]
@@ -179,25 +183,25 @@ def main():
             group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
         )
 
-    # print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
-    # page_token = None
-    # while True:
-    #     response = get_list_events_response(
-    #         service, calendar_id, page_token, date_range["start_date"]
-    #     )
-    #     events = response.get("items", [])
+    print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
+    page_token = None
+    while True:
+        response = get_list_events_response(
+            service, calendar_id, page_token, date_range["start_date"]
+        )
+        events = response.get("items", [])
 
-    #     for event in events:
-    #         delete_calendar_event(service, calendar_id, event["id"])
-    #     page_token = response.get("nextPageToken", None)
+        for event in events:
+            delete_calendar_event(service, calendar_id, event["id"])
+        page_token = response.get("nextPageToken", None)
 
-    #     if not page_token:
-    #         break
+        if not page_token:
+            break
 
     lead_workdays = []
     assist_workdays = []
     event_body = {}
-    # print("Writing rota to calendar...")
+    print("Writing rota to calendar...")
     for i in range(n_days):
         event_body["summary"] = (
             f"{support_pairs[i][0]} is on support today with {support_pairs[i][1]} "
@@ -206,12 +210,12 @@ def main():
         event_body["start"] = {"date": str(workday_dates[i])}
         event_body["end"] = {"date": str(workday_dates[i] + timedelta(1))}
 
-        # write_calendar_event(service, calendar_id, event_body)
+        write_calendar_event(service, calendar_id, event_body)
 
         lead_workdays.append((support_pairs[i][0], workday_dates[i].weekday()))
         assist_workdays.append((support_pairs[i][1], workday_dates[i].weekday()))
 
-    days_worked_report, dates_report = get_report(
+    days_worked_report, config_report = get_report(
         g_sevens,
         everyone_else,
         lead_workdays,
@@ -223,8 +227,8 @@ def main():
 
     with open("../docs/days_worked_report.json", "w") as file:
         json.dump(days_worked_report, file)
-    with open("../docs/dates_report.json", "w") as file:
-        json.dump(dates_report, file)
+    with open("../docs/config_report.json", "w") as file:
+        json.dump(config_report, file)
 
     print(f"\nIn {n_days} working days:")
     for individual in days_worked_report.items():
