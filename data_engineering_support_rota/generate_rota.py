@@ -1,91 +1,37 @@
+import calendar
+from collections import Counter
 from datetime import datetime, timedelta
-import os
+import json
 import random
-from typing import Union
 
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.api_core import retry
-from googleapiclient.discovery import build, Resource
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-
+from google_calendar_api import (
+    create_service,
+    get_list_events_response,
+    delete_calendar_event,
+    write_calendar_event,
+)
 from settings import google_calendar_api, date_range, support_team
+from utils import (
+    string_to_datetime,
+    get_workday_dates,
+    repeat_and_shuffle_without_consecutive_elements,
+)
 
 
-def string_to_datetime(date: str) -> datetime:
-    """Takes a date as a sting of the format YYYY-MM-DD and converts it to a datetime
-    object.
-    """
-    return datetime.strptime(date, "%Y-%m-%d").date()
-
-
-def get_workday_dates(start_date: datetime, n_days: int) -> list:
-    """Generates a list of dates excluding weekends that is n_days long starting at
-    start_date.
-    """
-    dates = []
-    days_delta = 0
-
-    while len(dates) != n_days:
-        date = start_date + timedelta(days_delta)
-        days_delta += 1
-        if date.weekday() not in [5, 6]:
-            dates.append(date)
-
-    return dates
-
-
-def repeat_and_shuffle_without_consecutive_elements(
-    input_list: list, n_repeats: int
-) -> list:
-    """Repeats a list the specified number of times and shuffles it's elements whilst
-    ensuring no two consecutive values are equal.
-    Parameters
-    ----------
-    input_list : list
-        The list you want to repeat and shuffle.
-    n_repeats : int
-        The number of times you want to repeat the input list.
-    Returns
-    -------
-    list
-        A list of length n_repeats * len(input_list), shuffled with no two consecutive
-        values being equal.
-    Raises
-    ------
-    ValueError
-        If the input list contains duplicate values.
-    """
-    if len(set(input_list)) != len(input_list):
-        raise ValueError("Remove the duplicate value in this list: ", input_list)
-
-    output = list(input_list)
-    random.shuffle(output)
-
-    for n in range(n_repeats - 1):
-        shuffle_list = [element for element in input_list if element not in output[-1]]
-        random.shuffle(shuffle_list)
-        shuffle_list.append(output[-1])
-        shuffle_list[1:] = random.sample(shuffle_list[1:], len(shuffle_list) - 1)
-        output.extend(shuffle_list)
-
-    return output
-
-
-def generate_lead_list(group: list, n_cycles: int) -> list:
-    """A helper function that repeats the list group for n_cycles and shuffles each
+def generate_lead_list(group: list[str], n_cycles: int) -> list:
+    """A helper function that repeats the list, group, for n_cycles and shuffles each
     repitition.
     """
     random.shuffle(group)
     repeat_and_shuffle = []
 
-    for n in range(n_cycles):
+    for _ in range(n_cycles):
         repeat_and_shuffle.extend(group)
 
     return repeat_and_shuffle
 
 
-def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
+def generate_assist_list(group_a: list[str], group_b: list[str], n_cycles: int) -> list:
     """A helper function that takes group_a and repeats it the number of times required
     such that it's length is at least as long as the length of group_b * n_cycles. Each
     repitition is shuffled whilst ensuring no two consequtive elements are the same.
@@ -98,26 +44,23 @@ def generate_assist_list(group_a: list, group_b: list, n_cycles: int) -> list:
     if group_a_length == group_b_length:
         return repeat_and_shuffle_without_consecutive_elements(group_a, n_cycles)
 
-    elif group_a_length > group_b_length:
-        return repeat_and_shuffle_without_consecutive_elements(
-            group_a, ((group_b_length * n_cycles) // group_a_length) + 1
-        )[: group_b_length * n_cycles]
-
     else:
         return repeat_and_shuffle_without_consecutive_elements(
-            group_a, ((group_b_length * n_cycles) // group_a_length) + 1
+            group_a, round((group_b_length * n_cycles) / group_a_length)
         )[: group_b_length * n_cycles]
 
 
-def generate_support_pairs(group_1: list, group_2: list, n_cycles: int) -> list:
+def generate_support_pairs(
+    group_1: list[str], group_2: list[str], n_cycles: int
+) -> list[tuple]:
     """Generates a list of 2-tuples containing a leading and assisting pair to work
     support.
     """
     group_1_lead = generate_lead_list(group_1, n_cycles)
-    group_1_assist = generate_assist_list(group_1, group_2, n_cycles)
+    group_2_assist = generate_assist_list(group_2, group_1, n_cycles)
 
     group_2_lead = generate_lead_list(group_2, n_cycles)
-    group_2_assist = generate_assist_list(group_2, group_1, n_cycles)
+    group_1_assist = generate_assist_list(group_1, group_2, n_cycles)
 
     support_pairs = []
     group_1_lead_index = 0
@@ -139,86 +82,82 @@ def generate_support_pairs(group_1: list, group_2: list, n_cycles: int) -> list:
     return support_pairs
 
 
-def create_service(
-    client_secret_file: str, api_name: str, api_version: str, scopes: list
-) -> Resource:
-    """Creates a serive connection to the Google Calendar API.
+def get_report(
+    g_sevens: list[str],
+    everyone_else: list[str],
+    lead_workdays: list[tuple],
+    assist_workdays: list[tuple],
+    workday_dates: list[datetime],
+    n_cyles: int,
+    n_days: int,
+):
+    lead_workday_counts = Counter(lead_workdays)
+    assist_workday_counts = Counter(assist_workdays)
 
-    Parameters
-    ----------
-    client_secret_file
-        The path to the client secrets file
-    api_name : str
-        The Google API to create a service for
-    api_version : str
-        The Google API version
-    scopes : list
-        The list of scopes to request during the flow
+    days_worked_report = {}
+    everyone = list(g_sevens)
+    everyone.extend(everyone_else)
+    for name in everyone:
+        days_worked_report[name] = {"lead_workdays": [], "assist_workdays": []}
 
-    Returns
-    -------
-    service
-        A connection to the Google Calendar API
-    """
-    creds = None
-    token_file = f"{api_name}_api_{api_version}_token.json"
+    for lead_individual in lead_workday_counts.items():
+        lead_name = lead_individual[0][0]
+        lead_workday = calendar.day_name[lead_individual[0][1]]
+        lead_workday_count = lead_individual[1]
 
-    if os.path.exists(token_file):
-        print("Reading token...")
-        creds = Credentials.from_authorized_user_file(token_file, scopes)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            try:
-                print("Refreshing token...")
-                creds.refresh(Request())
-            except Exception:
-                print("Couldn't refresh token, trying to get a new one...")
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    client_secret_file, scopes
-                )
-                creds = flow.run_local_server(port=0)
-        else:
-            print("Getting token...")
-            flow = InstalledAppFlow.from_client_secrets_file(client_secret_file, scopes)
-            creds = flow.run_local_server(port=0)
-
-        print("Writing updated token to file...")
-        with open(token_file, "w") as token:
-            token.write(creds.to_json())
-
-    service = build(serviceName=api_name, version=api_version, credentials=creds)
-    print(api_name.capitalize(), "API service created successfully.")
-
-    return service
-
-
-@retry.Retry()
-def get_list_events_response(
-    service: Resource, calendar_id: str, page_token: Union[str, None], start_date: str
-) -> dict:
-    return (
-        service.events()
-        .list(
-            calendarId=calendar_id,
-            pageToken=page_token,
-            timeMin=start_date + "T00:00:00.000000Z",
+        days_worked_report[lead_name]["lead_workdays"].append(
+            (lead_workday, lead_workday_count)
         )
-        .execute()
-    )
 
+    for assist_individual in assist_workday_counts.items():
+        assist_name = assist_individual[0][0]
+        assist_workday = calendar.day_name[assist_individual[0][1]]
+        assist_workday_count = assist_individual[1]
 
-@retry.Retry()
-def delete_calendar_event(service: Resource, calendar_id: str, event_id: str):
-    service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+        days_worked_report[assist_name]["assist_workdays"].append(
+            (assist_workday, assist_workday_count)
+        )
 
+    for individual in days_worked_report.items():
+        # The following loop is redundant because the number of days working support as
+        # lead should always be the same as n_cyles. But, it's nice to check that the
+        # code has worked correctly.
+        lead_count = 0
+        for lead_workday_count in individual[1]["lead_workdays"]:
+            lead_count += lead_workday_count[1]
 
-@retry.Retry()
-def write_calendar_event(service: Resource, calendar_id: str, event_body: dict):
-    service.events().insert(calendarId=calendar_id, body=event_body).execute()
+        assist_count = 0
+        for assist_workday_count in individual[1]["assist_workdays"]:
+            assist_count += assist_workday_count[1]
+
+        days_worked_report[individual[0]]["totals"] = (
+            ("lead_days", lead_count),
+            ("assist_days", assist_count),
+            ("grand_total", lead_count + assist_count),
+        )
+
+    config_report = {
+        "date_range": {
+            "start": str(workday_dates[0]),
+            "end": str(workday_dates[-1]),
+            "n_cyles": n_cyles,
+            "total_days": n_days,
+        },
+        "calendar": {
+            "env": google_calendar_api["calendar"],
+            "id": google_calendar_api["calendar_ids"][google_calendar_api["calendar"]],
+        },
+    }
+
+    return days_worked_report, config_report
 
 
 def main():
+    if support_team["start_cycle_with"] not in ["g_sevens", "everyone_else"]:
+        raise ValueError(
+            f"{support_team['start_cycle_with']} is an invalid group name."
+        )
+
     service = create_service(
         google_calendar_api["client_secret_file"],
         google_calendar_api["api_name"],
@@ -259,6 +198,8 @@ def main():
         if not page_token:
             break
 
+    lead_workdays = []
+    assist_workdays = []
     event_body = {}
     print("Writing rota to calendar...")
     for i in range(n_days):
@@ -271,29 +212,34 @@ def main():
 
         write_calendar_event(service, calendar_id, event_body)
 
-    everyone = list(g_sevens)
-    everyone.extend(everyone_else)
+        lead_workdays.append((support_pairs[i][0], workday_dates[i].weekday()))
+        assist_workdays.append((support_pairs[i][1], workday_dates[i].weekday()))
+
+    days_worked_report, config_report = get_report(
+        g_sevens,
+        everyone_else,
+        lead_workdays,
+        assist_workdays,
+        workday_dates,
+        n_cycles,
+        n_days,
+    )
+
+    with open("../docs/days_worked_report.json", "w") as file:
+        json.dump(days_worked_report, file)
+    with open("../docs/config_report.json", "w") as file:
+        json.dump(config_report, file)
 
     print(f"\nIn {n_days} working days:")
-    for individual in everyone:
-        lead_count = 0
-        assist_count = 0
-
-        for pair in support_pairs:
-            if individual == pair[0]:
-                lead_count += 1
-            if individual == pair[1]:
-                assist_count += 1
-
+    for individual in days_worked_report.items():
+        name = individual[0]
+        lead_count = individual[1]["totals"][0][1]
+        assist_count = individual[1]["totals"][1][1]
         print(
-            f"{individual} has been scheduled to lead {lead_count} times and assist "
+            f"{name} has been scheduled to lead support {lead_count} times and assist "
             f"{assist_count} times."
         )
 
 
 if __name__ == "__main__":
-    if support_team["start_cycle_with"] not in ["g_sevens", "everyone_else"]:
-        raise ValueError(
-            f"{support_team['start_cycle_with']} is an invalid group name."
-        )
     main()
