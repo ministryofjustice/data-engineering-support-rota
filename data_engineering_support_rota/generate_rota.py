@@ -55,7 +55,6 @@ def generate_support_pairs(
     group_1: list[str],
     group_2: list[str],
     n_cycles: int,
-    # n_days: int,
 ) -> list[tuple]:
     """Generates a list of 2-tuples containing a leading and assisting pair to work
     support.
@@ -94,7 +93,7 @@ def generate_support_pairs(
             group_a = list(group_1)
             random.shuffle(group_a)
             if support_pairs[-1][0] == group_a[0] or support_pairs[-1][1] == group_a[0]:
-                group_a.append(group_a.pop(0))
+                group_a.pop(0)
 
             group_b = list(group_2)
             random.shuffle(group_b)
@@ -114,10 +113,10 @@ def generate_support_pairs(
         else:
             group_a = list(group_1)
             random.shuffle(group_a)
-            print("len(group_a) lead:", len(group_a))
+
             group_b = list(group_2)
             random.shuffle(group_b)
-            print("len(group_b) assist", len(group_b))
+
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_a, group_b)
             )
@@ -135,33 +134,17 @@ def generate_support_pairs(
                     )
                 else:
                     break
-            print("len(group_a) assist:", len(group_a))
+
             group_b = list(group_2)
             random.shuffle(group_b)
             if support_pairs[-1][0] == group_b[0] or support_pairs[-1][1] == group_b[0]:
                 group_b.append(group_b.pop(0))
-            print("len(group_b) lead", len(group_b))
+
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_b, group_a)
             )
 
     return support_pairs
-
-
-# g_sevens = support_team["g_sevens"]
-# everyone_else = support_team["everyone_else"]
-# n_cycles = date_range["n_cycles"]
-
-# if support_team["start_cycle_with"] == "g_sevens":
-#     support_pairs = generate_support_pairs(
-#         group_1=g_sevens, group_2=everyone_else, n_cycles=n_cycles
-#     )
-# else:
-#     support_pairs = generate_support_pairs(
-#         group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
-#     )
-
-# print(support_pairs)
 
 
 def get_report(
