@@ -2,6 +2,7 @@ import calendar
 from collections import Counter
 from datetime import datetime, timedelta
 import json
+from math import ceil
 import random
 
 from google_calendar_api import (
@@ -46,7 +47,7 @@ def generate_assist_list(group_a: list[str], group_b: list[str], n_cycles: int) 
 
     else:
         return repeat_and_shuffle_without_consecutive_elements(
-            group_a, round((group_b_length * n_cycles) / group_a_length)
+            group_a, ceil((group_b_length * n_cycles) / group_a_length)
         )[: group_b_length * n_cycles]
 
 
