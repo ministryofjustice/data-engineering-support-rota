@@ -27,12 +27,12 @@ support_team = {
         "Anthony",
         "David",
         "Danjiv",
-        "Lora",
-        "Stephen",
+        # "Lora",
+        # "Stephen",
     ],
 }
 
 date_range = {
     "start_date": "2021-08-03",
-    "n_cycles": 5,
+    "n_cycles": 50,
 }
