@@ -2,6 +2,7 @@ import calendar
 from collections import Counter
 from datetime import datetime, timedelta
 import json
+from math import ceil
 import random
 
 from google_calendar_api import (
@@ -46,7 +47,7 @@ def generate_assist_list(group_a: list[str], group_b: list[str], n_cycles: int) 
 
     else:
         return repeat_and_shuffle_without_consecutive_elements(
-            group_a, round((group_b_length * n_cycles) / group_a_length)
+            group_a, ceil((group_b_length * n_cycles) / group_a_length)
         )[: group_b_length * n_cycles]
 
 
@@ -83,7 +84,7 @@ def generate_support_pairs(
 
             group_b = list(group_2)
             group_b = repeat_and_shuffle_without_consecutive_elements(
-                group_2, round(group_1_length / group_2_length)
+                group_2, ceil(group_1_length / group_2_length)
             )
 
             support_pairs.extend(
@@ -122,7 +123,7 @@ def generate_support_pairs(
             )
 
             group_a = repeat_and_shuffle_without_consecutive_elements(
-                group_1, round(group_2_length / group_1_length)
+                group_1, ceil(group_2_length / group_1_length)
             )
             while True:
                 if (
@@ -130,7 +131,7 @@ def generate_support_pairs(
                     or support_pairs[-1][1] == group_a[0]
                 ):
                     group_a = repeat_and_shuffle_without_consecutive_elements(
-                        group_1, round(group_2_length / group_1_length)
+                        group_1, ceil(group_2_length / group_1_length)
                     )
                 else:
                     break
