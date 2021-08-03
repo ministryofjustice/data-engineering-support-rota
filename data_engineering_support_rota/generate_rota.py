@@ -3,7 +3,8 @@ from collections import Counter
 from datetime import datetime, timedelta
 import json
 from math import ceil
-import random
+
+from numpy.random import default_rng
 
 from google_calendar_api import (
     create_service,
@@ -62,14 +63,17 @@ def generate_support_pairs(
     group_1_length = len(group_1)
     group_2_length = len(group_2)
     support_pairs = []
+    generator = default_rng()
 
     for _ in range(n_cycles):
         if group_1_length == group_2_length:
             group_a = list(group_1)
-            random.shuffle(group_a)
+            generator.shuffle(group_a)
+            # random.shuffle(group_a)
 
             group_b = list(group_2)
-            random.shuffle(group_b)
+            generator.shuffle(group_b)
+            # random.shuffle(group_b)
 
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_a, group_b)
@@ -79,7 +83,8 @@ def generate_support_pairs(
             )
         elif group_1_length > group_2_length:
             group_a = list(group_1)
-            random.shuffle(group_a)
+            generator.shuffle(group_a)
+            # random.shuffle(group_a)
 
             group_b = list(group_2)
             group_b = repeat_and_shuffle_without_consecutive_elements(
@@ -91,12 +96,20 @@ def generate_support_pairs(
             )
 
             group_a = list(group_1)
-            random.shuffle(group_a)
-            if support_pairs[-1][0] == group_a[0] or support_pairs[-1][1] == group_a[0]:
-                group_a.pop(0)
+            generator.shuffle(group_a)
+            # random.shuffle(group_a)
+            while True:
+                if (
+                    support_pairs[-1][0] == group_a[0]
+                    or support_pairs[-1][1] == group_a[0]
+                ):
+                    group_a.append(group_a.pop(0))
+                else:
+                    break
 
             group_b = list(group_2)
-            random.shuffle(group_b)
+            generator.shuffle(group_b)
+            # random.shuffle(group_b)
             while True:
                 if (
                     support_pairs[-1][0] == group_b[0]
@@ -112,10 +125,12 @@ def generate_support_pairs(
 
         else:
             group_a = list(group_1)
-            random.shuffle(group_a)
+            generator.shuffle(group_a)
+            # random.shuffle(group_a)
 
             group_b = list(group_2)
-            random.shuffle(group_b)
+            generator.shuffle(group_b)
+            # random.shuffle(group_b)
 
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_a, group_b)
@@ -136,9 +151,16 @@ def generate_support_pairs(
                     break
 
             group_b = list(group_2)
-            random.shuffle(group_b)
-            if support_pairs[-1][0] == group_b[0] or support_pairs[-1][1] == group_b[0]:
-                group_b.append(group_b.pop(0))
+            generator.shuffle(group_b)
+            # random.shuffle(group_b)
+            while True:
+                if (
+                    support_pairs[-1][0] == group_b[0]
+                    or support_pairs[-1][1] == group_b[0]
+                ):
+                    group_b.append(group_b.pop(0))
+                else:
+                    break
 
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_b, group_a)
@@ -247,8 +269,7 @@ def main():
         support_pairs = generate_support_pairs(
             group_1=everyone_else, group_2=g_sevens, n_cycles=n_cycles
         )
-    print("len(support_pairs)", len(support_pairs))
-    print("n_days", n_days)
+
     # print(f"Deleting all calendar events from {date_range['start_date']} onwards...")
     # page_token = None
     # while True:

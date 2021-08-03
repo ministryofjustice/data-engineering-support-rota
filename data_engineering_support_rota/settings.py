@@ -34,5 +34,5 @@ support_team = {
 
 date_range = {
     "start_date": "2021-08-03",
-    "n_cycles": 15,
+    "n_cycles": 50,
 }
