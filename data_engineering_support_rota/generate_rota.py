@@ -19,38 +19,6 @@ from utils import (
 )
 
 
-def generate_lead_list(group: list[str], n_cycles: int) -> list:
-    """A helper function that repeats the list, group, for n_cycles and shuffles each
-    repitition.
-    """
-    random.shuffle(group)
-    repeat_and_shuffle = []
-
-    for _ in range(n_cycles):
-        repeat_and_shuffle.extend(group)
-
-    return repeat_and_shuffle
-
-
-def generate_assist_list(group_a: list[str], group_b: list[str], n_cycles: int) -> list:
-    """A helper function that takes group_a and repeats it the number of times required
-    such that it's length is at least as long as the length of group_b * n_cycles. Each
-    repitition is shuffled whilst ensuring no two consequtive elements are the same.
-    Finally the repeated and shuffled group_a list is sliced to the exact length of
-    group_b * n_cycles.
-    """
-    group_a_length = len(group_a)
-    group_b_length = len(group_b)
-
-    if group_a_length == group_b_length:
-        return repeat_and_shuffle_without_consecutive_elements(group_a, n_cycles)
-
-    else:
-        return repeat_and_shuffle_without_consecutive_elements(
-            group_a, ceil((group_b_length * n_cycles) / group_a_length)
-        )[: group_b_length * n_cycles]
-
-
 def generate_support_pairs(
     group_1: list[str],
     group_2: list[str],
