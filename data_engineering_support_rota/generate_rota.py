@@ -3,8 +3,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 import json
 from math import ceil
-
-from numpy.random import default_rng
+import random
 
 from google_calendar_api import (
     create_service,
@@ -63,17 +62,14 @@ def generate_support_pairs(
     group_1_length = len(group_1)
     group_2_length = len(group_2)
     support_pairs = []
-    generator = default_rng()
 
     for _ in range(n_cycles):
         if group_1_length == group_2_length:
             group_a = list(group_1)
-            generator.shuffle(group_a)
-            # random.shuffle(group_a)
+            random.shuffle(group_a)
 
             group_b = list(group_2)
-            generator.shuffle(group_b)
-            # random.shuffle(group_b)
+            random.shuffle(group_b)
 
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_a, group_b)
@@ -83,8 +79,7 @@ def generate_support_pairs(
             )
         elif group_1_length > group_2_length:
             group_a = list(group_1)
-            generator.shuffle(group_a)
-            # random.shuffle(group_a)
+            random.shuffle(group_a)
 
             group_b = list(group_2)
             group_b = repeat_and_shuffle_without_consecutive_elements(
@@ -96,8 +91,7 @@ def generate_support_pairs(
             )
 
             group_a = list(group_1)
-            generator.shuffle(group_a)
-            # random.shuffle(group_a)
+            random.shuffle(group_a)
             while True:
                 if (
                     support_pairs[-1][0] == group_a[0]
@@ -108,8 +102,7 @@ def generate_support_pairs(
                     break
 
             group_b = list(group_2)
-            generator.shuffle(group_b)
-            # random.shuffle(group_b)
+            random.shuffle(group_b)
             while True:
                 if (
                     support_pairs[-1][0] == group_b[0]
@@ -125,12 +118,10 @@ def generate_support_pairs(
 
         else:
             group_a = list(group_1)
-            generator.shuffle(group_a)
-            # random.shuffle(group_a)
+            random.shuffle(group_a)
 
             group_b = list(group_2)
-            generator.shuffle(group_b)
-            # random.shuffle(group_b)
+            random.shuffle(group_b)
 
             support_pairs.extend(
                 (leading, assisting) for leading, assisting in zip(group_a, group_b)
@@ -151,8 +142,7 @@ def generate_support_pairs(
                     break
 
             group_b = list(group_2)
-            generator.shuffle(group_b)
-            # random.shuffle(group_b)
+            random.shuffle(group_b)
             while True:
                 if (
                     support_pairs[-1][0] == group_b[0]
