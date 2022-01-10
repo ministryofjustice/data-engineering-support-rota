@@ -7,32 +7,34 @@ google_calendar_api = {
         "dev": "qk7dfadvnmao3lgvb207pqd1bk@group.calendar.google.com",
         "prod": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
     },
-    "calendar": "dev",
+    "calendar": "prod",
 }
 
 support_team = {
     "start_cycle_with": "g_sevens",
     "g_sevens": [
-        "George",
-        "Calum",
-        "Karik",
-        "Jacob",
         "Kimberley",
+        "Priya",
+        "Francesca",
+        "Soumaya",
+        "Stephen",
+        "Tapan",
     ],
     "everyone_else": [
         "Thomas",
-        "Jake",
-        "Tapan",
+        "Jacob",
         "Darius",
         "Anthony",
         "David",
         "Danjiv",
         "Lora",
-        "Stephen",
+        "Matt",
+        "Tamsin",
+        "Mike",
     ],
 }
 
 date_range = {
-    "start_date": "2021-08-03",
+    "start_date": "2022-01-20",
     "n_cycles": 5,
 }
