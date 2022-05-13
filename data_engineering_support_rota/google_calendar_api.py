@@ -86,4 +86,4 @@ def delete_calendar_event(service: Resource, calendar_id: str, event_id: str):
 @retry.Retry()
 def write_calendar_event(service: Resource, calendar_id: str, event_body: dict):
     service.events().insert(calendarId=calendar_id, body=event_body).execute()
-    time.sleep(0.5)
+    time.sleep(0.25)
