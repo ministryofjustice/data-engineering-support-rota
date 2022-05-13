@@ -38,6 +38,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2022-05-16",
-    "n_cycles": 5,
+    "start_date": "2022-09-26",
+    "n_cycles": 10,
 }
