@@ -27,6 +27,7 @@ def generate_lead_list(group: list[str], n_cycles: int) -> list:
     repeat_and_shuffle = []
 
     for _ in range(n_cycles):
+        random.shuffle(group)
         repeat_and_shuffle.extend(group)
 
     return repeat_and_shuffle
