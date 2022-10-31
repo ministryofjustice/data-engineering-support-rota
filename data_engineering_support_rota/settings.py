@@ -4,28 +4,28 @@ google_calendar_api = {
     "api_version": "v3",
     "scopes": ["https://www.googleapis.com/auth/calendar"],
     "calendar_ids": {
-        "dev": "qk7dfadvnmao3lgvb207pqd1bk@group.calendar.google.com",
+        "dev-1": "qk7dfadvnmao3lgvb207pqd1bk@group.calendar.google.com",
+        "dev-2": (
+            "3736415c8adfda50a2c3e0331dcd402321af0d48eee9f786d4458080d72111f7"
+            "@group.calendar.google.com"
+        ),
         "prod": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
     },
     "calendar": "prod",
 }
 
 support_team = {
-    "start_cycle_with": "g_sevens",
+    "start_cycle_with": "everyone_else",
     "g_sevens": [
-        "Kimberley",
         "Priya",
-        "Francesca",
         "Soumaya",
-        "Stephen",
         "Tapan",
         "Gwion",
-        "Alec",
+        "Oliver",
+        "Jacob",
     ],
     "everyone_else": [
         "Thomas",
-        "Jacob",
-        "Darius",
         "Anthony",
         "Danjiv",
         "Lora",
@@ -34,10 +34,14 @@ support_team = {
         "Mike",
         "Ant",
         "Tom",
+        "Murdo",
+        "William",
+        "Hemesh",
+        "Malik",
     ],
 }
 
 date_range = {
-    "start_date": "2022-09-26",
-    "n_cycles": 10,
+    "start_date": "2022-10-31",
+    "n_cycles": 8,
 }
