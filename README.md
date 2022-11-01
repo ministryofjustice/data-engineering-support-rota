@@ -27,7 +27,7 @@ Update the `settings.py` file where there are three dictionaries containing:
 - The start date and the number of cycles you want the calendar to run for.
   - It's not compulsory but if updating an existing calendar, you should set the start date to begin when the cycle switches from G7s to everyone else, or vice versa.
   - One cycle is the number of days equal to the total number of individuals in the support team.
-- The support team is made up of two groups, which is defined as those that are G7s and aren't.
+- The support team which made up of two groups and defined as those that are and aren't G7s.
   - Update the team if needed and select which group to start a cycle with.
 
 Login credentials for the moj.data.engineering.dev@gmail.com account which has the Google Calendar API enabled are stored in LastPass. Have these ready for the next step.
