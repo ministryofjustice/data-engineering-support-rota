@@ -1,31 +1,47 @@
 # Data engineering support rota
 
-This repo contains a script that populates a Google Calendar with a support rota for the data engineering team.
+This tool pairs up team members and schedules them to work support for the data engineering team. The support rota is made available in a Google Calendar.
 
 ## Usage
 
-To work with this repo, first setup Python (this repo has been tested with 3.8) and git-crypt (the use of a virtual envionment of some sort is also recommended). You'll need to add your GPG key to the repo to decrypt it, details about how to do so can be found [here](.git-crypt/README.md).
+WARNING :warning: Don't use this tool with a calendar that is used for anything other than the support rota. The tool will delete all events from the specified start date onwards, before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
 
-WARNING :warning: Don't use this script with a calendar that is used for anything other than the support rota. The script will delete any events from the specified start date onwards, before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
+If you haven't had your GPG key added to the repository get someone who has to add it by following the guidance, [here](./.git-crypt/README.md).
 
-- You'll need to update `settings.py` where there are three dictionaries containing:
+Clone the repository to your desired directory and decrypt it by running:
 
+```
+git-crypt unlock
+```
+
+Activate a Python virtual environment (tested with 3.10.4) then run:
+
+```
+pip install -r requirements.txt
+```
+
+Update the `settings.py` file where there are three dictionaries containing:
   - Google Calendar API connection settings.
-    - There are two default calendar IDs, `dev` and `prod`, update the `calendar` value to one of these.
+    - There are three default calendar IDs, `dev-1`, `dev-2` and `prod`, update the `calendar` value to one of these.
   - The start date and the number of cycles you want the calendar to run for.
     - It's not compulsory but if updating an existing calendar, you should set the start date to begin when the cycle switches from G7s to everyone else, or vice versa.
     - One cycle is the number of days equal to the total number of individuals in the support team.
   - The support team is made up of two groups, which is defined as those that are G7s and aren't.
     - Update the team if needed and select which group to start a cycle with.
 
-- Log into the Google Calendar with the credentials provided in `docs/google_calendar_login.txt`, these creds are for a dev calendar with the Google Calendar API enabled. You can use the `generate_rota.py` script to add events to any Google Calendar, but you will need to make sure API access is enabled and you've added the appropriate calendar ID to `settings.py`.
-- Run `pip install -r requirements.txt` (from within your virtual environment).
-- Run `generate_rota.py` from within the `data_engineering_support_rota/` package directory.
 
-  - A browser window will open and you'll have to accept the access request.
-    - A session token gets created so you don't have to do this every time.
+Login credentials for the moj.data.engineering.dev@gmail.com account which has the Google Calendar API enabled are stored in LastPass. Have these ready for the next step.
 
-- See the [data engineering wiki](https://github.com/moj-analytical-services/data-engineering/wiki/Data-Engineering-Support-Rota) for more details about support.
+`cd` into the `data_engineering_support_rota/` directory and run:
+
+```
+python generate_rota.py
+````
+
+A browser window will open and you'll have to accept the access request, you will need to log in with the username and password if you haven't already done so.
+  - A session token gets created so you don't have to do this every time.
+
+- See the [data engineering Confluence space](https://dsdmoj.atlassian.net/l/cp/hBVj3UsV) for more details about support.
 
 ## Licence
 
