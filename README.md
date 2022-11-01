@@ -39,9 +39,10 @@ python generate_rota.py
 ````
 
 A browser window will open and you'll have to accept the access request, you will need to log in with the username and password if you haven't already done so.
+  - The dataengineering@digital.justice.gov.uk can be used to verify the login if needed.
   - A session token gets created so you don't have to do this every time.
 
-- See the [data engineering Confluence space](https://dsdmoj.atlassian.net/l/cp/hBVj3UsV) for more details about support.
+See the [data engineering Confluence space](https://dsdmoj.atlassian.net/l/cp/hBVj3UsV) for more details about support.
 
 ## Licence
 
