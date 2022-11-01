@@ -4,7 +4,7 @@ This tool pairs up team members and schedules them to work support for the data 
 
 ## Usage
 
-WARNING :warning: Don't use this tool with a calendar that is used for anything other than the support rota. The tool will delete all events from the specified start date onwards, before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
+WARNING :warning: Don't use this tool with a calendar that is used for anything other than the support rota. The tool will delete all events from the specified start date onwards before creating new ones (this is so you don't have to worry about creating duplicate events). :warning: WARNING
 
 If you haven't had your GPG key added to the repository get someone who has to add it by following the guidance, [here](./.git-crypt/README.md).
 
