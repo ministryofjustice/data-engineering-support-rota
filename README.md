@@ -24,11 +24,11 @@ Update the `settings.py` file where there are three dictionaries containing:
 
 - Google Calendar API connection settings.
   - There are three default calendar IDs, `dev-1`, `dev-2` and `prod`, update the `calendar` value to one of these.
+- The support team which is made up of two groups and defined as those that are and aren't G7s.
+  - Update the team if needed and select which group to start a cycle with.
 - The start date and the number of cycles you want the calendar to run for.
   - It's not compulsory but if updating an existing calendar, you should set the start date to begin when the cycle switches from G7s to everyone else, or vice versa.
   - One cycle is the number of days equal to the total number of individuals in the support team.
-- The support team which made up of two groups and defined as those that are and aren't G7s.
-  - Update the team if needed and select which group to start a cycle with.
 
 Login credentials for the moj.data.engineering.dev@gmail.com account which has the Google Calendar API enabled are stored in LastPass. Have these ready for the next step.
 
@@ -42,6 +42,10 @@ A browser window will open and you'll have to accept the access request, you wil
 
 - The dataengineering@digital.justice.gov.uk can be used to verify the login if needed.
 - A session token gets created so you don't have to do this every time.
+
+If you have modified the `support_team` dictionary in `settings.py` you should also add or remove the same team members email addresses from the Support Rota Google calendar by going to the 'Share with specific people` section in the calendar settings.
+
+The Google Calendar for Teams Events Slack integration is used to post reminders of who is on support that day to the [#data_engineering](https://mojdt.slack.com/archives/CBVUV2613) team's channel. The configuration can be found, [here](https://mojdt.slack.com/services/1905620543633).
 
 See the [data engineering Confluence space](https://dsdmoj.atlassian.net/l/cp/hBVj3UsV) for more details about support.
 
