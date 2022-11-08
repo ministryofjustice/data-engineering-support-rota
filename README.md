@@ -1,4 +1,4 @@
-# Data engineering support rota
+# Data Engineering Support Rota
 
 This tool pairs up team members and schedules them to work support for the data engineering team. The support rota is made available in a Google Calendar.
 
