@@ -11,37 +11,36 @@ google_calendar_api = {
         ),
         "prod": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
     },
-    "calendar": "prod",
+    "calendar": "dev-1",
 }
 
 support_team = {
-    "start_cycle_with": "everyone_else",
+    "start_cycle_with": "g_sevens",
     "g_sevens": [
+        "Gwion",
+        "Jacob",
+        "Oliver",
         "Priya",
         "Soumaya",
         "Tapan",
-        "Gwion",
-        "Oliver",
-        "Jacob",
     ],
     "everyone_else": [
-        "Thomas",
+        "Ant",
         "Anthony",
         "Danjiv",
-        "Lora",
-        "Matt",
-        "Tamsin",
-        "Mike",
-        "Ant",
-        "Tom",
-        "Murdo",
-        "William",
         "Hemesh",
+        "Lora",
         "Malik",
+        "Matt",
+        "Mike",
+        "Murdo",
+        "Tamsin",
+        "Thomas",
+        "William",
     ],
 }
 
 date_range = {
-    "start_date": "2022-10-31",
+    "start_date": "2023-01-10",
     "n_cycles": 8,
 }
