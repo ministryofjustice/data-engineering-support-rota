@@ -11,7 +11,7 @@ google_calendar_api = {
         ),
         "prod": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
     },
-    "calendar": "dev-1",
+    "calendar": "dev-1", # ensure value dev-1 or dev-2 when testing
 }
 
 support_team = {
