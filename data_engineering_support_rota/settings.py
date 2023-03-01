@@ -11,7 +11,7 @@ google_calendar_api = {
         ),
         "prod": "9c720gjf06r8odu2vhsfvd7e9k@group.calendar.google.com",
     },
-    "calendar": "dev-1",
+    "calendar": "dev-1", # "dev-1" or "dev-2" for testing; "prod" for real
 }
 
 support_team = {
@@ -19,6 +19,7 @@ support_team = {
     "g_sevens": [
         "Gwion",
         "Jacob",
+        "Michael",
         "Oliver",
         "Priya",
         "Soumaya",
@@ -28,19 +29,22 @@ support_team = {
         "Ant",
         "Anthony",
         "Danjiv",
+        "George",
+        "Gustav",
         "Hemesh",
-        "Lora",
         "Malik",
         "Matt",
         "Mike",
         "Murdo",
+        "Siva",
         "Tamsin",
+        "Theo",
         "Thomas",
         "William",
     ],
 }
 
 date_range = {
-    "start_date": "2023-01-10",
+    "start_date": "2023-03-01",
     "n_cycles": 8,
 }
