@@ -29,7 +29,6 @@ support_team = {
         "Ant",
         "Anthony",
         "Danjiv",
-        "George",
         "Gustav",
         "Hemesh",
         "Malik",
@@ -45,6 +44,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2023-03-01",
+    "start_date": "2023-03-31",
     "n_cycles": 8,
 }
