@@ -1,0 +1,83 @@
+name: Notify data engineering channel
+# Notify the data-engineering slack channel with who is on support for the day
+on:
+  schedule:
+    # At 08:00 AM on Monday through Friday.
+    - cron: "0 8 * * MON-FRI"
+
+# env:
+#   DBT_PROFILES_DIR: ../.dbt/
+#   DEPLOY_ENV: prod
+
+jobs:
+  notify:
+    name: Notify slack channel
+    runs-on: [self-hosted, management-infrastructure]
+    defaults:
+      run:
+        working-directory: ./data_engineering_support_rota
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: run notify script
+        run: python slack-bot-test-2.py
+
+jobs:
+  deploy:
+    name: Deploy dbt project (daily)
+    runs-on: [self-hosted, management-infrastructure]
+    defaults:
+      run:
+        working-directory: ./mojap_derived_tables
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::593291632749:role/github-actions-infrastructure
+          role-skip-session-tagging: true
+          role-duration-seconds: 3600
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install dbt-core~=1.3.0
+          pip install --force-reinstall git+https://github.com/ministryofjustice/dbt-athena.git
+          pip install dataengineeringutils3
+      - name: dbt debug
+        run: dbt debug
+
+      - name: Clean dbt target directory
+        run: dbt clean
+
+      - name: Install dbt dependencies
+        run: dbt deps
+
+      - name: Compile dbt models
+        run: dbt compile --target prod --select tag:daily
+
+      - name: Deploy dbt models
+        run: dbt run --target prod --select tag:daily
+
+      - name: Run dbt tests
+        run: dbt test --target prod --select tag:daily
+
+      - name: Export run artefacts to S3
+        if: ${{ always() }}
+        run: python ../scripts/export_run_artefacts.py
