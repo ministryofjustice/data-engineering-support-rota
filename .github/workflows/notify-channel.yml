@@ -10,7 +10,7 @@ on:
 jobs:
   notify:
     name: Notify slack channel
-    runs-on: [self-hosted, management-infrastructure]
+    runs-on: ubuntu-latest
     # defaults:
     #   run:
     #     working-directory: ./data_engineering_support_rota
@@ -28,8 +28,7 @@ jobs:
           cache: "pip"
 
       - name: Run notify script
-        run:
-        python .github/scripts/notify-channel.py
+        run: python .github/scripts/notify-channel.py
 
 # de-channel-hook needs to be in github secrets and set as env var
 # test-gcal-hook 
