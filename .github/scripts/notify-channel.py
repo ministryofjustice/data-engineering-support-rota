@@ -9,6 +9,7 @@ from datetime import datetime, date
 hook = os.getenv("TEST_GCAL_HOOK")
 # hook = os.getenv("DATA_ENG_HOOK")
 
+
 base_url = "https://hooks.slack.com/services/"
 
 
@@ -22,7 +23,7 @@ def send_message(content, webhook):  # send message to webhook
     message_json = json.dumps(message)
     return requests.post(webhook, message_json)
 
-text = f"Today's date is {now.date()}, and the time is {now.time()}"
+text = f"Today's date is {now.date()} and the time is {now.time()}"
 webhook_endpoint = f"{base_url}{hook}"
 
 send_message(text, webhook_endpoint)  
