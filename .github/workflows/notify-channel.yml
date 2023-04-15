@@ -33,6 +33,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run notify script
+        env:
+          TEST_GCAL_HOOK: ${{ secrets.TEST_GCAL_HOOK }}
         run: python .github/scripts/notify-channel.py
 
 # de-channel-hook needs to be in github secrets and set as env var

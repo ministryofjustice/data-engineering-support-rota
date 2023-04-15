@@ -6,10 +6,8 @@ from requests.exceptions import HTTPError, RequestException, URLRequired
 from datetime import datetime, date
 
 # Get hook from GitHub secrets
-hook = os.getenv("TEST_GCAL_HOOK")
+hook = os.getenv["TEST_GCAL_HOOK"]
 # hook = os.getenv("DATA_ENG_HOOK")
-
-
 base_url = "https://hooks.slack.com/services/"
 
 
@@ -32,4 +30,7 @@ send_message(text, webhook_endpoint)
 
 # 1. connect to calendar and get calendar event details
 # 2. use webhook from github secrets to schedule messages
+
+# appears to run fine in github action but doesn't post to channel
+# prob missing some permission token maybe?
 
