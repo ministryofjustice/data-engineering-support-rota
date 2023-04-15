@@ -1,0 +1,42 @@
+name: Notify data engineering channel
+# Notify the data-engineering slack channel with who is on support for the day
+on:
+  - pull_request
+# on:
+#   schedule:
+#     # At 08:00 AM on Monday through Friday.
+#     - cron: "0 8 * * MON-FRI"
+
+jobs:
+  notify:
+    name: Notify slack channel
+    runs-on: ubuntu-latest
+    # defaults:
+    #   run:
+    #     working-directory: ./data_engineering_support_rota
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run notify script
+        env:
+          TEST_GCAL_HOOK: ${{ secrets.TEST_GCAL_HOOK }}
+        run: python .github/scripts/notify-channel.py
+
+# de-channel-hook needs to be in github secrets and set as env var
+# test-gcal-hook 
+# dm-me-hook
