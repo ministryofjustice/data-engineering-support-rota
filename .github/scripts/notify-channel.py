@@ -6,10 +6,10 @@ from requests.exceptions import HTTPError, RequestException, URLRequired
 from datetime import datetime, date
 
 # Get hook from GitHub secrets
-hook = os.getenv("TEST_GCAL_HOOK")
+#hook = os.getenv("TEST_GCAL_HOOK")
+hook = os.environ["TEST_GCAL_HOOK"] # error if var does not exist
 # hook = os.getenv("DATA_ENG_HOOK")
 base_url = "https://hooks.slack.com/services/"
-
 
 # Get today's event details from calendar
 # today = date.today()

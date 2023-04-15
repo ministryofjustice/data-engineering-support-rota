@@ -142,3 +142,6 @@ dmypy.json
 
 # google calendar api
 *_token.json
+
+# secrets
+secret.py
