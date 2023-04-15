@@ -13,8 +13,8 @@ base_url = "https://hooks.slack.com/services/"
 
 
 # Get today's event details from calendar
-today = date.today()
-time = datetime.time()
+# today = date.today()
+now = datetime.now()
 
 # Send message to slack channel
 def send_message(content, webhook):  # send message to webhook
@@ -22,7 +22,7 @@ def send_message(content, webhook):  # send message to webhook
     message_json = json.dumps(message)
     return requests.post(webhook, message_json)
 
-text = f"Today's date is {today}, and the time is {time}"
+text = f"Today's date is {now.date()}, and the time is {now.time()}"
 webhook_endpoint = f"{base_url}{hook}"
 
 send_message(text, webhook_endpoint)  
