@@ -21,15 +21,14 @@ support_team = {
         "Gwion",
         "Jacob",
         "Michael",
-        "Oliver",
         "Priya",
         "Soumaya",
         "Tapan",
     ],
     "everyone_else": [
+        "Andrew",
         "Ant",
         "Anthony",
-        "Danjiv",
         "Gustav",
         "Hemesh",
         "Malik",
@@ -46,6 +45,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2023-05-01",
+    "start_date": "2023-06-01",
     "n_cycles": 8,
 }
