@@ -21,6 +21,7 @@ support_team = {
         "Gwion",
         "Jacob",
         "Michael",
+        "Oliver",
         "Priya",
         "Soumaya",
         "Tapan",
@@ -30,7 +31,6 @@ support_team = {
         "Ant",
         "Anthony",
         "Gustav",
-        "Hemesh",
         "Malik",
         "Matt",
         "Mike",
@@ -40,11 +40,12 @@ support_team = {
         "Tamsin",
         "Theo",
         "Thomas",
+        "Tom",
         "William",
     ],
 }
 
 date_range = {
-    "start_date": "2023-06-01",
-    "n_cycles": 8,
+    "start_date": "2023-08-02",
+    "n_cycles": 4,
 }
