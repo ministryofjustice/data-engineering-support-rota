@@ -17,6 +17,8 @@ To generate a GPG key, follow the [GitHub guidance](https://help.github.com/en/g
 - key valid for: choose an appropriate non-0 expiry time
 - create a passphrase
 
+Note the email address associated with your github account is the one used to identify your key. 
+
 ## Add the GPG key to the repository
 
 You must ask a user that already has access to add your GPG key to the repository.
@@ -25,7 +27,7 @@ To add a GPG key for another user to the repository:
 
 1.  Ask the user to export their GPG public key:
     ```
-    gpg --armor --export <firstname.lastname@justice.gov.uk>
+    gpg --armor --export <email-address>
     ```
 
 2.  Save the file locally, for example, `/tmp/firstname.asc` and email it to you.
@@ -38,24 +40,30 @@ To add a GPG key for another user to the repository:
 
 4.  Tell GPG that you trust the key. Enter the parameters to select the level of trust (`4: full`) and sign it:
 
-        gpg --edit-key "firstname.lastname@justice.gov.uk" trust
+        gpg --edit-key <email-address> trust
             # 4
             # save
             # quit
-        gpg --edit-key "firstname.lastname@justice.gov.uk" sign
+        gpg --edit-key <email-address> sign
             # you will need to type your own passphrase
             # save
 
 5.  Confirm that `[ full ]` is shown when you list the key:
 
     ```
+    gpg --list-keys <email-address>
+    ```
+    or list all keys
+
+    ```
     gpg --list-keys
     ```
     Example expected output:
+
     ```
         pub rsa4096 2015-02-05 [SC]
         17818CFB47FFFC384F0CC
-        uid [ full ] firstname <firstname.lastname@digital.justice.gov.uk>
+        uid [ full ] firstname <email-address>
         sub rsa4096 2015-02-05 [E]
     ```
 
@@ -64,7 +72,7 @@ To add a GPG key for another user to the repository:
     ```
     cd data-engineering-support-rota
     git checkout -b <branch-name>
-    git-crypt add-gpg-user <firstname.lastname@digital.justice.gov.uk>
+    git-crypt add-gpg-user <email-address>
     ```
     This will automatically add a new `.gpg` file under `git-crypt/keys/default/0`, for example, `50934997E3CFF98E3F0E8765C1606EC98B636725.gpg`.
 
