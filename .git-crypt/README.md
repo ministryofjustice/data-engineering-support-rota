@@ -14,7 +14,7 @@ To generate a GPG key, follow the [GitHub guidance](https://help.github.com/en/g
 
 - key type: RSA-RSA
 - key size: 4096
-- key valid for: choose an appropriate non-0 expiry time
+- key valid for: choose an appropriate non-inifite (0) expiry time
 - create a passphrase
 
 Note the email address associated with your github account is the one used to identify your key. 
