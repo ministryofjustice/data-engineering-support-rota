@@ -30,7 +30,7 @@ To add a GPG key for another user to the repository:
     gpg --armor --export <email-address>
     ```
 
-2.  Ask the user to save the file locally, for example, `/tmp/firstname.asc` and send this file to you. As this is the **public key** it is OK to send via email attachment, but please double check they are sending the public key only! The private key should stay on the users local machine.
+2.  Ask the user to save the file locally, for example, `/tmp/firstname.asc` and send this file to you. As this is the **public key** it is OK to send via email attachment, but please double check they are sending the public key only! The private key should stay on the user's local machine.
 
 3.  Import the key into your GPG Keychain:
     ```
