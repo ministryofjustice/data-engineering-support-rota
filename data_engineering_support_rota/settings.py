@@ -32,8 +32,7 @@ support_team = {
     "everyone_else": [
         "Andy",
         "Ant",
-        "Anthony", 
-        "Malik",
+        "Anthony",
         "Matt",
         "Mike",
         "Murad",
