@@ -17,7 +17,6 @@ google_calendar_api = {
 support_team = {
     "start_cycle_with": "g_sevens",
     "g_sevens": [
-        "Andrew",
         "David",
         "Gustav",
         "Gwion",
@@ -27,13 +26,14 @@ support_team = {
         "Priya",
         "Soumaya",
         "Tapan",
-        
+        "Matt P"
     ],
     "everyone_else": [
         "Andy",
         "Ant",
         "Anthony",
-        "Matt",
+        "Matt H",
+        "Matt L",
         "Mike",
         "Murad",
         "Murdo",
@@ -46,6 +46,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2023-11-07",
+    "start_date": "2024-02-07",
     "n_cycles": 4,
 }
