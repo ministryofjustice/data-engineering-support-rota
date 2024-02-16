@@ -21,7 +21,6 @@ support_team = {
         "Gustav",
         "Gwion",
         "Jacob",
-        "Michael",
         "Oliver",
         "Priya",
         "Soumaya",
@@ -32,16 +31,17 @@ support_team = {
         "Andy",
         "Ant",
         "Anthony",
+        "Guy",
         "Matt H",
         "Matt L",
-        "Mike",
         "Murad",
         "Murdo",
+        "Parminder",
         "Siva",
         "Theo",
         "Thomas",
         "Tom",
-        "William",
+        "William"
     ],
 }
 
