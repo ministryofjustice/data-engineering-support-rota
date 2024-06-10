@@ -20,32 +20,32 @@ support_team = {
         "David",
         "Gustav",
         "Gwion",
-        "Jacob",
-        "Michael",
+        "James",
+        "Matt P",
         "Oliver",
         "Priya",
         "Soumaya",
-        "Tapan",
-        "Matt P"
+        "Tapan"
     ],
     "everyone_else": [
         "Andy",
-        "Ant",
         "Anthony",
+        "Guy",
         "Matt H",
         "Matt L",
-        "Mike",
         "Murad",
         "Murdo",
+        "Parminder",
         "Siva",
         "Theo",
         "Thomas",
-        "Tom",
-        "William",
+        "Tom HL",
+        "Tom HW",
+        "William"
     ],
 }
 
 date_range = {
-    "start_date": "2024-02-07",
+    "start_date": "2024-06-14",
     "n_cycles": 4,
 }
