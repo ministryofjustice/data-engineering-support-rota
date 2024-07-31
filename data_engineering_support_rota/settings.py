@@ -31,6 +31,8 @@ support_team = {
         "Andy",
         "Anthony",
         "Guy",
+        "Lalitha",
+        "Khristiania",
         "Matt H",
         "Matt L",
         "Murad",
@@ -46,6 +48,6 @@ support_team = {
 }
 
 date_range = {
-    "start_date": "2024-06-14",
+    "start_date": "2024-08-19",
     "n_cycles": 4,
 }
