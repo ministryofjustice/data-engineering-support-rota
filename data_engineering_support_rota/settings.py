@@ -18,33 +18,28 @@ support_team = {
     "start_cycle_with": "g_sevens",
     "g_sevens": [
         "Andrew C",
-        "Gustav",
         "James",
+        "Lalitha",
+        "Laurence",
+        "Matt H",
         "Matt P",
-        "Oliver",
-        "Priya",
         "Supratik",
-        "Tapan"
+        "Tapan",
+        "Tom HW"
     ],
     "everyone_else": [
         "Andy",
         "Anthony",
         "Guy",
-        "Lalitha",
-        "Khristiania",
-        "Matt H",
-        "Matt L",
         "Murad",
-        "Murdo",
         "Siva",
         "Theo",
         "Thomas",
-        "Tom HW",
         "William"
     ],
 }
 
 date_range = {
-    "start_date": "2025-01-07",
+    "start_date": "2025-04-21",
     "n_cycles": 4,
 }
