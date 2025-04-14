@@ -15,33 +15,31 @@ google_calendar_api = {
 }
 
 support_team = {
-    "start_cycle_with": "everyone_else",
+    "start_cycle_with": "g_sevens",
     "g_sevens": [
         "Andrew C",
         "James",
+        "Lalitha",
+        "Laurence",
         "Matt H",
         "Matt P",
-        "Oliver",
-        "Priya",
         "Supratik",
-        "Tapan"
+        "Tapan",
+        "Tom HW"
     ],
     "everyone_else": [
         "Andy",
         "Anthony",
         "Guy",
-        "Lalitha",
         "Murad",
-        "Murdo",
         "Siva",
         "Theo",
         "Thomas",
-        "Tom HW",
         "William"
     ],
 }
 
 date_range = {
-    "start_date": "2025-03-10",
+    "start_date": "2025-04-21",
     "n_cycles": 4,
 }
